@@ -1,0 +1,38 @@
+# ===== KONFIGURASI SENSITIF =====
+config/config.php
+config/database.php
+.env
+.env.local
+.env.production
+
+# ===== UPLOADS (data user, jangan ke GitHub) =====
+uploads/*
+!uploads/.gitkeep
+!uploads/slider/.gitkeep
+!uploads/logo/.gitkeep
+
+# ===== LOGS & CACHE =====
+logs/
+cache/
+*.log
+
+# ===== FILE SEMENTARA =====
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== DEPENDENCIES (jika ada) =====
+vendor/
+node_modules/
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ===== BACKUP DATABASE =====
+*.sql.bak
+backup_*.sql
