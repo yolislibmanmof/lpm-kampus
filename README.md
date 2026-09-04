@@ -131,3 +131,4 @@ Arahkan domain `lpm-kampus` ke folder proyek.
 
 ## 📜 Lisensi
 Proprietary — dikembangkan untuk LPM Kampus.
+WEBSITE INI BELUM FINAL, JANGAN KEPO UNTUK MENGGUNAKANNYA
