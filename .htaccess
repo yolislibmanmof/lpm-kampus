@@ -1,0 +1,23 @@
+# .htaccess (root)
+Options -Indexes
+ServerSignature Off
+
+# Lindungi file sensitif (sql, log, env)
+<FilesMatch "\.(env|log|sql|md|ini)$">
+    Require all denied
+</FilesMatch>
+
+RewriteEngine On
+
+# Blokir akses HTTP ke folder sensitif
+RewriteRule ^(config|core|logs)/ - [F,L]
+
+# Blokir eksekusi PHP di folder uploads
+RewriteRule ^uploads/.*\.(php|phtml|php3|php5|pl|py|cgi)$ - [F,L,NC]
+
+# Header keamanan
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
