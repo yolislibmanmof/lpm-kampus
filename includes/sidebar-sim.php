@@ -26,6 +26,8 @@ $menus = [
         ['url' => '/sim/admin/dosen-manual.php', 'icon' => '📇', 'label' => 'Kelola Dosen', 'key' => 'dosenman'],
         ['url' => '/sim/admin/profil.php', 'icon' => '🏛️', 'label' => 'Konten Profil Publik', 'key' => 'profil'],
         ['url' => '/sim/admin/slider.php', 'icon' => '🖼️', 'label' => 'Slider Beranda', 'key' => 'slider'],
+        ['url' => '/sim/admin/mitra.php', 'icon' => '🏛️', 'label' => 'Mitra & Pengakuan', 'key' => 'mitra'],
+        ['url' => '/sim/admin/milestone.php', 'icon' => '📜', 'label' => 'Milestone Lembaga', 'key' => 'milestone'],
         ['url' => '/sim/admin/akreditasi-intl.php', 'icon' => '🌍', 'label' => 'Akreditasi Internasional', 'key' => 'akrintl'],
         ['url' => '/sim/admin/logs.php', 'icon' => '📜', 'label' => 'Audit Trail', 'key' => 'logs'],
         ['url' => '/sim/admin/tenggat.php', 'icon' => '⏰', 'label' => 'Tenggat & Reminder', 'key' => 'tenggat'],
@@ -91,7 +93,7 @@ $menuGroups = (Auth::role() == 1) ? [
     ['icon' => '🔄', 'label' => 'AMI & RTM',       'keys' => ['jadwal', 'instrumen', 'rtmtl']],
     ['icon' => '📊', 'label' => 'Monev & IKU',     'keys' => ['iku', 'kuesioner', 'tracer', 'responden', 'surveipg']],
     ['icon' => '📁', 'label' => 'Dokumen Mutu',    'keys' => ['dokumen', 'kendok']],
-    ['icon' => '📣', 'label' => 'Konten Publik',   'keys' => ['berita', 'pengaduan', 'profil', 'slider']],
+    ['icon' => '📣', 'label' => 'Konten Publik',   'keys' => ['berita', 'pengaduan', 'profil', 'slider', 'mitra', 'milestone']],
     ['icon' => '📈', 'label' => 'Laporan',         'keys' => ['laporan', 'puslap']],
     ['icon' => '⚙️', 'label' => 'Sistem',          'keys' => ['logs', 'tenggat', 'email', 'panduan']],
 ] : null;

@@ -558,4 +558,13 @@ return [
     'Jika ingin statistik otomatis penuh, gunakan salah satu kolom:' => 'To enable full automatic statistics, use one of these columns:',
     'program studi dalam pemantauan mutu berkelanjutan.' => 'study programs under continuous quality monitoring.',
 
+    // ═══════════════════════════════════════════════════════════════
+    // MITRA & MILESTONE
+    // ═══════════════════════════════════════════════════════════════
+    'Mitra & Pengakuan' => 'Partners & Recognition',
+    'Terhubung dengan lembaga penjaminan mutu nasional & internasional.' => 'Connected with national & international quality assurance bodies.',
+    'Perjalanan Kami' => 'Our Journey',
+    'Milestone <em>Lembaga</em>' => 'Institution <em>Milestones</em>',
+    'Jejak langkah pengembangan penjaminan mutu dari masa ke masa.' => 'The track record of quality assurance development over time.',
+
 ];

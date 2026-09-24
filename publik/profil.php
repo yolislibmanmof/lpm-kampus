@@ -799,6 +799,54 @@ require_once __DIR__ . '/../includes/header-publik.php';
     </div>
 </section>
 
+<?php
+$milestones = [];
+try { $milestones = $db->query("SELECT * FROM milestone ORDER BY urutan, tahun")->fetchAll(); } catch (Throwable $e) {}
+?>
+<?php if (!empty($milestones)): ?>
+<section class="pr-sec light">
+    <div class="pr-container">
+        <div class="pr-head pr-rev">
+            <span class="pr-tag">Perjalanan Kami</span>
+            <h2>Milestone <em>Lembaga</em></h2>
+            <p>Jejak langkah pengembangan penjaminan mutu dari masa ke masa.</p>
+        </div>
+        <div class="prx-tl">
+            <?php foreach ($milestones as $i => $m): ?>
+            <div class="prx-item <?= $i % 2 ? 'right' : 'left' ?> pr-rev">
+                <div class="prx-dot"><span><?= $m['icon'] ?: '🎯' ?></span></div>
+                <div class="prx-card">
+                    <span class="prx-year"><?= Security::e($m['tahun']) ?></span>
+                    <span class="prx-cat"><?= Security::e($m['kategori']) ?></span>
+                    <h3><?= Security::e($m['judul']) ?></h3>
+                    <p><?= Security::e($m['deskripsi']) ?></p>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<style>
+.prx-tl{position:relative;max-width:900px;margin:0 auto;padding:20px 0}
+.prx-tl::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:3px;transform:translateX(-50%);background:linear-gradient(180deg,#C9A227,#0F3D5C,#C9A227);border-radius:3px}
+.prx-item{position:relative;width:50%;padding:0 44px 44px 0}
+.prx-item.right{margin-left:50%;padding:0 0 44px 44px}
+.prx-dot{position:absolute;top:6px;right:-27px;width:54px;height:54px;border-radius:50%;background:#fff;border:3px solid #C9A227;display:grid;place-items:center;font-size:22px;box-shadow:0 8px 22px rgba(201,162,39,.35);z-index:2}
+.prx-item.right .prx-dot{right:auto;left:-27px}
+.prx-card{background:#fff;border:1px solid #E2E8F0;border-radius:18px;padding:22px;box-shadow:0 10px 30px rgba(15,61,92,.08);transition:.3s}
+.prx-card:hover{transform:translateY(-4px);box-shadow:0 18px 44px rgba(15,61,92,.14);border-color:rgba(201,162,39,.4)}
+.prx-year{display:inline-block;padding:4px 12px;border-radius:50px;background:linear-gradient(135deg,#C9A227,#E8C55A);color:#092A40;font-weight:900;font-size:12px;margin-bottom:8px}
+.prx-cat{display:inline-block;padding:4px 10px;border-radius:50px;background:rgba(15,61,92,.08);color:#0F3D5C;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-left:6px}
+.prx-card h3{font-size:17px;color:#092A40;margin:6px 0}
+.prx-card p{font-size:13.5px;color:#64748B;line-height:1.6;margin:0}
+@media(max-width:768px){
+    .prx-tl::before{left:26px}
+    .prx-item,.prx-item.right{width:100%;margin-left:0;padding:0 0 36px 66px}
+    .prx-dot,.prx-item.right .prx-dot{left:0;right:auto}
+}
+</style>
+<?php endif; ?>
+
 <!-- ===== CTA ===== -->
 <section class="pr-cta">
     <canvas class="pr-cta-canvas" id="prCanvas"></canvas>

@@ -224,4 +224,13 @@ return [
     'ami_schedule_desc' => ['id' => 'Agenda audit terkini', 'en' => 'Latest audit agenda'],
     'portal_sim' => ['id' => 'Portal SIM-Mutu', 'en' => 'SIM-Mutu Portal'],
     'portal_sim_desc' => ['id' => 'Masuk sistem internal bagi civitas akademika', 'en' => 'Internal system login for academic community'],
+
+    // ===== MITRA =====
+    'partners_title' => ['id' => 'Mitra & Pengakuan', 'en' => 'Partners & Recognition'],
+    'partners_desc' => ['id' => 'Terhubung dengan lembaga penjaminan mutu nasional & internasional.', 'en' => 'Connected with national & international quality assurance bodies.'],
+    
+    // ===== MILESTONE =====
+    'milestone_tag' => ['id' => 'Perjalanan Kami', 'en' => 'Our Journey'],
+    'milestone_title' => ['id' => 'Milestone <em>Lembaga</em>', 'en' => 'Institution <em>Milestones</em>'],
+    'milestone_desc' => ['id' => 'Jejak langkah pengembangan penjaminan mutu dari masa ke masa.', 'en' => 'The track record of quality assurance development over time.'],
 ];

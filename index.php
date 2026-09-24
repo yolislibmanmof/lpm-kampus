@@ -1172,25 +1172,55 @@ $kepalaLpm = $db->query("SELECT nama_lengkap, foto FROM users WHERE id_role = 2 
 </section>
 
 <!-- ===== PARTNERS ===== -->
+<?php
+$mitraList = [];
+try { $mitraList = $db->query("SELECT * FROM mitra WHERE aktif = 1 ORDER BY urutan, nama")->fetchAll(); } catch (Throwable $e) {}
+if (empty($mitraList)) {
+    $mitraList = [
+        ['kode'=>'BAN-PT','nama'=>'Badan Akreditasi Nasional PT','warna'=>'#0F3D5C','logo_path'=>null,'url'=>null],
+        ['kode'=>'LAM INFOKOM','nama'=>'LAM Informatika & Komputer','warna'=>'#1A5A82','logo_path'=>null,'url'=>null],
+        ['kode'=>'PDDIKTI','nama'=>'Pangkalan Data Dikti','warna'=>'#3B82F6','logo_path'=>null,'url'=>null],
+        ['kode'=>'AUN-QA','nama'=>'ASEAN University Network QA','warna'=>'#003DA5','logo_path'=>null,'url'=>null],
+    ];
+}
+?>
+<!-- ===== MITRA & PENGAKUAN ===== -->
 <section class="ix-partners">
-    <!-- 🌐 LANG: Partners label -->
-    <div class="ix-partners-label"><?= t('partners_label', 'Terafiliasi & Diakui Oleh') ?></div>
-    <div class="ix-partners-track">
-        <?php
-        $partners = [
-            ['🏛️', 'BAN-PT'],
-            ['🎓', 'LAM'],
-            ['📊', 'PDDIKTI'],
-            ['🌐', 'SISTER'],
-            ['🏆', 'Kemendikbud'],
-            ['📚', 'Kemdikbudristek'],
-        ];
-        for ($i = 0; $i < 2; $i++):
-            foreach ($partners as $p): ?>
-            <div class="ix-partners-item"><span><?= $p[0] ?></span> <?= $p[1] ?></div>
-        <?php endforeach; endfor; ?>
+    <div class="ixp-head">
+        <span class="ix-sw-tag">🏛️ <?= t('partners_label') ?></span>
+        <h2 style="font-size:clamp(28px,3.6vw,44px);font-weight:800;color:var(--primary-dark);letter-spacing:-.02em;margin:14px 0 8px;"><?= t('partners_title', 'Mitra & Pengakuan') ?></h2>
+        <p style="color:var(--text-muted);font-size:16px;margin:0;"><?= t('partners_desc', 'Terhubung dengan lembaga penjaminan mutu nasional & internasional.') ?></p>
+    </div>
+    <div class="ixp-marquee">
+        <div class="ixp-track">
+            <?php for ($r = 0; $r < 2; $r++): foreach ($mitraList as $m): ?>
+                <a class="ixp-item" href="<?= $m['url'] ? Security::e($m['url']) : '#' ?>" <?= $m['url'] ? 'target="_blank" rel="noopener"' : 'onclick="return false"' ?>>
+                    <?php if (!empty($m['logo_path']) && file_exists(PATH_UPLOAD . $m['logo_path'])): ?>
+                        <img src="/uploads/<?= Security::e($m['logo_path']) ?>" alt="<?= Security::e($m['nama']) ?>">
+                    <?php else: ?>
+                        <span class="ixp-mono" style="--w:<?= Security::e($m['warna'] ?: '#0F3D5C') ?>"><?= Security::e($m['kode']) ?></span>
+                    <?php endif; ?>
+                    <small><?= Security::e($m['nama']) ?></small>
+                </a>
+            <?php endforeach; endfor; ?>
+        </div>
     </div>
 </section>
+<style>
+.ix-partners{padding:90px 0;background:#fff;overflow:hidden}
+.ixp-head{text-align:center;max-width:640px;margin:0 auto 44px;padding:0 24px}
+.ixp-marquee{overflow:hidden;position:relative;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);}
+.ixp-track{display:flex;gap:22px;width:max-content;animation:ixpScroll 32s linear infinite;padding:6px 0}
+.ixp-marquee:hover .ixp-track{animation-play-state:paused}
+@keyframes ixpScroll{to{transform:translateX(-50%)}}
+.ixp-item{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:170px;padding:22px 18px;border:1px solid var(--border);border-radius:18px;background:var(--bg-card);text-decoration:none;transition:.3s;filter:grayscale(1);opacity:.75}
+.ixp-item:hover{filter:none;opacity:1;transform:translateY(-5px);box-shadow:0 16px 40px rgba(15,61,92,.12);border-color:rgba(201,162,39,.45)}
+.ixp-item img{height:52px;width:auto;max-width:130px;object-fit:contain}
+.ixp-mono{display:grid;place-items:center;width:100%;height:52px;border-radius:12px;background:var(--w,#0F3D5C);color:#fff;font-weight:900;font-size:13px;letter-spacing:.5px;padding:0 10px;text-align:center}
+.ixp-item small{font-size:11.5px;font-weight:700;color:var(--text-muted);text-align:center;line-height:1.35}
+</style>
 
 <!-- ===== MEGA CTA ===== -->
 <section class="ix-mega">
