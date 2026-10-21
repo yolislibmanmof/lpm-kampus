@@ -1,0 +1,65 @@
+# ==========================================
+# .HTACCESS - FINAL SECURE & COMPATIBLE
+# ==========================================
+
+# 1. Dasar Keamanan
+Options -Indexes
+ServerSignature Off
+
+# 2. Rewrite Engine
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+</IfModule>
+
+# 3. Lindungi File Sensitif
+<FilesMatch "\.(env|env\.example|log|sql|bak|gitignore)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 4. Cegah Akses Langsung ke Folder Sensitif
+<IfModule mod_rewrite.c>
+    RewriteRule ^(config|core|logs|vendor)/ - [F,L]
+</IfModule>
+
+# 5. Blokir Eksekusi PHP di Folder Uploads
+<FilesMatch "^uploads/.*\.(php|phtml|php3|php4|php5|php7|php8|pl|py|jsp|asp|sh|cgi)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 6. Security Headers (DIPERBAIKI)
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Permissions-Policy (Hanya fitur yang valid & didukung browser)
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    
+    # Content-Security-Policy (DITAMBAHKAN media-src 'self' data: untuk audio notifikasi)
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net; frame-ancestors 'none'; form-action 'self';"
+    
+    # HSTS (Hanya jika HTTPS aktif)
+    <If "%{HTTPS} == 'on'">
+        Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    </If>
+</IfModule>
+
+# 7. Default Charset & Kompresi
+AddDefaultCharset UTF-8
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>

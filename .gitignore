@@ -1,0 +1,49 @@
+# ==========================================
+# .GITIGNORE - STRICT PROTECTION
+# ==========================================
+
+# 1. RAHASIA & KONFIGURASI (WAJIB DILINDUNGI)
+.env
+.env.local
+.env.production
+.env.*.local
+config/config-local.php
+
+# 2. DEPENDENCIES & BUILD
+/vendor/
+/node_modules/
+/composer.lock
+/package-lock.json
+/yarn.lock
+
+# 3. USER UPLOADS & GENERATED FILES (Jangan upload file user ke Git)
+/uploads/*
+!/uploads/.gitkeep
+/cache/
+/logs/
+*.log
+
+# 4. IDE & EDITOR
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 5. SISTEM OPERASI & TEMP
+*.tmp
+*.temp
+.phpunit.result.cache
+.php_cs.cache
+
+# 6. DATABASE DUMPS (Jangan pernah commit SQL produksi)
+*.sql
+*.sql.gz
+*.bak
+*.backup
+
+# 7. DOKUMENTASI SENSITIF (Opsional, sesuaikan)
+# README_PRODUCTION.md
+# credentials.txt
