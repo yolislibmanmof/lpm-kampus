@@ -102,15 +102,6 @@ require_once __DIR__ . '/../includes/header-publik.php';
 .tr-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #C9A227, #E8C55A); box-shadow: 0 0 12px rgba(201,162,39,.5); transition: width .1s linear; }
 
 /* ===== DARK MODE ===== */
-.tr-dark-toggle {
-    position: fixed; bottom: 24px; left: 24px; z-index: 1000;
-    width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
-    background: #fff; color: #0F3D5C;
-    display: grid; place-items: center; font-size: 22px;
-    box-shadow: 0 8px 24px rgba(15,61,92,.15);
-    transition: .3s;
-}
-.tr-dark-toggle:hover { transform: scale(1.08) rotate(15deg); }
 body.tr-dark { background: #0F172A; color: #E2E8F0; }
 body.tr-dark .tr-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
 body.tr-dark .tr-card { background: #1E293B; border-color: #334155; }
@@ -597,9 +588,48 @@ body.tr-dark .tr-faq-head h3 { color: #E2E8F0; }
 }
 
 @media print {
-    .tr-hero, .tr-dark-toggle, .tr-back-top, .tr-progress, .tr-faq, .tr-links { display: none !important; }
-    .tr-card { box-shadow: none; border: 1px solid #000; margin-top: 0; }
+    .tr-back-top, .tr-progress { display: none !important; }
 }
+
+/* ===== DARK MODE BRIDGE (COMPREHENSIVE) ===== */
+body.dark { background: #0F172A; color: #E2E8F0; }
+body.dark .tr-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
+body.dark .tr-card { background: #1E293B; border-color: #334155; }
+body.dark .tr-form-body { background: #1E293B; }
+body.dark .tr-sec-title h4,
+body.dark .tr-state h3,
+body.dark .tr-field input,
+body.dark .tr-field select,
+body.dark .tr-field textarea,
+body.dark .tr-toggle-text h5 { color: #E2E8F0; }
+body.dark .tr-sec-title small,
+body.dark .tr-state p,
+body.dark .tr-field label,
+body.dark .tr-toggle-text p,
+body.dark .tr-secure,
+body.dark .tr-char-count { color: #94A3B8; }
+body.dark .tr-field input,
+body.dark .tr-field select,
+body.dark .tr-field textarea { background: #0F172A; border-color: #334155; color: #E2E8F0; }
+body.dark .tr-field input:focus ~ label,
+body.dark .tr-field input:not(:placeholder-shown) ~ label,
+body.dark .tr-field select:focus ~ label,
+body.dark .tr-field.has-value label,
+body.dark .tr-field textarea:focus ~ label,
+body.dark .tr-field textarea:not(:placeholder-shown) ~ label { background: #1E293B; }
+body.dark .tr-field label { background: #1E293B; }
+body.dark .tr-toggle { background: linear-gradient(135deg, rgba(201,162,39,.1), rgba(15,61,92,.15)); border-color: rgba(201,162,39,.3); }
+body.dark .tr-toggle.active { background: linear-gradient(135deg, rgba(16,185,129,.12), rgba(16,185,129,.05)); border-color: rgba(16,185,129,.4); }
+body.dark .tr-alert.danger { background: rgba(239,68,68,.15); color: #FCA5A5; }
+body.dark .tr-stats-card { background: #1E293B; border-color: #334155; }
+body.dark .tr-faq-item { background: #0F172A; border-color: #334155; }
+body.dark .tr-faq-item summary { color: #E2E8F0; }
+body.dark .tr-link-item { background: #0F172A; color: #E2E8F0; border-color: #334155; }
+body.dark .tr-steps { background: rgba(0,0,0,.2); border-bottom-color: #334155; }
+body.dark .tr-step-ind::after { background: #334155; }
+body.dark .tr-step-num { background: #334155; color: #94A3B8; }
+body.dark .tr-step-lbl { color: #94A3B8; }
+body.dark .tr-step-ind.active .tr-step-lbl { color: #E8C55A; }
 </style>
 
 <div class="tr-progress"><div class="tr-progress-bar" id="trProg"></div></div>
@@ -886,10 +916,6 @@ body.tr-dark .tr-faq-head h3 { color: #E2E8F0; }
         </div>
     </div>
 </section>
-
-<button class="tr-dark-toggle" id="trDarkToggle" aria-label="Toggle dark mode"><?= $ic['moon'] ?></button>
-<button class="tr-back-top" id="trBackTop" aria-label="Kembali ke atas"><?= $ic['arrow_up'] ?></button>
-
 <script>
 (function () {
     'use strict';
@@ -923,18 +949,26 @@ body.tr-dark .tr-faq-head h3 { color: #E2E8F0; }
     }, { passive: true });
     if (backTop) backTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-    /* ===== DARK MODE ===== */
-    var darkBtn = document.getElementById('trDarkToggle');
-    var savedDark = localStorage.getItem('trDark') === '1';
-    if (savedDark) {
-        document.body.classList.add('tr-dark');
-        if (darkBtn) darkBtn.innerHTML = ICON.sun;
-    }
-    if (darkBtn) darkBtn.addEventListener('click', function () {
-        var on = document.body.classList.toggle('tr-dark');
-        localStorage.setItem('trDark', on ? '1' : '0');
-        this.innerHTML = on ? ICON.sun : ICON.moon;
-    });
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Sync class tr-dark dari localStorage lpm-dark-mode
+        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
+        if (isDark) document.body.classList.add('tr-dark');
+        
+        // Listen perubahan dari header publik (cross-tab)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('tr-dark', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('tr-dark', nowDark);
+        }, 500);
+    })();
 
     /* ===== COUNTER ANIMATION ===== */
     document.querySelectorAll('[data-count]').forEach(function (el) {

@@ -131,14 +131,6 @@ require_once __DIR__ . '/../includes/header-publik.php';
 .ed-progress-global-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #C9A227, #E8C55A); box-shadow: 0 0 12px rgba(201,162,39,.5); transition: width .1s linear; }
 
 /* ===== DARK MODE ===== */
-.ed-dark-toggle {
-    position: fixed; bottom: 24px; left: 24px; z-index: 1000;
-    width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
-    background: #fff; color: #0F3D5C;
-    display: grid; place-items: center; font-size: 22px;
-    box-shadow: 0 8px 24px rgba(15,61,92,.15); transition: .3s;
-}
-.ed-dark-toggle:hover { transform: scale(1.08) rotate(15deg); }
 body.ed-dark { background: #0F172A; color: #E2E8F0; }
 body.ed-dark .ed-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
 body.ed-dark .ed-card { background: #1E293B; border-color: #334155; }
@@ -635,9 +627,51 @@ body.ed-dark .ed-faq h4 { color: #E2E8F0; }
 }
 
 @media print {
-    .ed-hero, .ed-dark-toggle, .ed-back-top, .ed-progress-global, .ed-faq, .ed-links, .ed-stats-row { display: none !important; }
-    .ed-card { box-shadow: none; border: 1px solid #000; margin-top: 0; }
+    .ed-back-top, .ed-progress-global { display: none !important; }
 }
+
+/* ===== DARK MODE BRIDGE (COMPREHENSIVE) ===== */
+body.dark { background: #0F172A; color: #E2E8F0; }
+body.dark .ed-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
+body.dark .ed-card { background: #1E293B; border-color: #334155; }
+body.dark .ed-form-body { background: #1E293B; }
+body.dark .ed-progress-wrap { background: rgba(15,23,42,.95); border-bottom-color: #334155; }
+body.dark .ed-q { border-bottom-color: #334155; }
+body.dark .ed-q.answered { background: linear-gradient(90deg, rgba(16,185,129,.08), transparent); }
+body.dark .ed-q.shake { background: rgba(239,68,68,.08); }
+body.dark .ed-q-text,
+body.dark .ed-state h3,
+body.dark .ed-faq h4,
+body.dark .ed-faq-q,
+body.dark .ed-nim-field input { color: #E2E8F0; }
+body.dark .ed-state p,
+body.dark .ed-progress-label,
+body.dark .ed-faq-a p,
+body.dark .ed-komentar-label { color: #94A3B8; }
+body.dark .ed-nim-field input { background: #0F172A; border-color: #334155; }
+body.dark .ed-nim-field label { background: #1E293B; color: #94A3B8; }
+body.dark .ed-nim-field input:focus ~ label,
+body.dark .ed-nim-field input:not(:placeholder-shown) ~ label { background: #1E293B; }
+body.dark .ed-komentar textarea { background: #0F172A; border-color: #334155; color: #E2E8F0; }
+body.dark .ed-stars label { color: #334155; }
+body.dark .ed-stars label:hover,
+body.dark .ed-stars label:hover ~ label,
+body.dark .ed-stars input:checked ~ label { color: #E8C55A; }
+body.dark .ed-progress-bar { background: #334155; }
+body.dark .ed-legend-wrap { background: linear-gradient(135deg, rgba(201,162,39,.1), rgba(15,61,92,.2)); border-color: rgba(201,162,39,.3); }
+body.dark .ed-lg-item { background: #0F172A; border-color: #334155; }
+body.dark .ed-faq-item { background: #0F172A; border-color: #334155; }
+body.dark .ed-faq-q:hover { background: #1E293B; }
+body.dark .ed-alert.danger { background: rgba(239,68,68,.15); color: #FCA5A5; }
+body.dark .ed-stats-card { background: #1E293B; border-color: #334155; }
+body.dark .ed-stats-num { color: #E2E8F0; }
+body.dark .ed-link-item { background: #0F172A; color: #E2E8F0; border-color: #334155; }
+body.dark .ed-aspect-sep { border-bottom-color: #334155; }
+body.dark .ed-steps-nav { background: rgba(0,0,0,.2); border-bottom-color: #334155; }
+body.dark .ed-step-ind::after { background: #334155; }
+body.dark .ed-step-num-i { background: #334155; color: #94A3B8; }
+body.dark .ed-step-lbl-i { color: #94A3B8; }
+body.dark .ed-step-ind.active .ed-step-lbl-i { color: #E8C55A; }
 </style>
 
 <div class="ed-progress-global"><div class="ed-progress-global-bar" id="edProg"></div></div>
@@ -861,9 +895,6 @@ body.ed-dark .ed-faq h4 { color: #E2E8F0; }
     </div>
 </section>
 
-<button class="ed-dark-toggle" id="edDarkToggle" aria-label="Toggle dark mode"><?= $ic['moon'] ?></button>
-<button class="ed-back-top" id="edBackTop" aria-label="Kembali ke atas"><?= $ic['arrow_up'] ?></button>
-
 <script>
 (function () {
     'use strict';
@@ -910,18 +941,26 @@ body.ed-dark .ed-faq h4 { color: #E2E8F0; }
     }, { passive: true });
     if (backTop) backTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-    /* ===== DARK MODE ===== */
-    var darkBtn = document.getElementById('edDarkToggle');
-    var savedDark = localStorage.getItem('edDark') === '1';
-    if (savedDark) {
-        document.body.classList.add('ed-dark');
-        if (darkBtn) darkBtn.innerHTML = ICON.sun;
-    }
-    if (darkBtn) darkBtn.addEventListener('click', function () {
-        var on = document.body.classList.toggle('ed-dark');
-        localStorage.setItem('edDark', on ? '1' : '0');
-        this.innerHTML = on ? ICON.sun : ICON.moon;
-    });
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Sync class ed-dark dari localStorage lpm-dark-mode
+        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
+        if (isDark) document.body.classList.add('ed-dark');
+        
+        // Listen perubahan dari header publik (cross-tab)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('ed-dark', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('ed-dark', nowDark);
+        }, 500);
+    })();
 
     /* ===== COUNTER ANIMATION ===== */
     document.querySelectorAll('[data-count]').forEach(function (el) {

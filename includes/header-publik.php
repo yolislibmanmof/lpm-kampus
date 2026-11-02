@@ -29,8 +29,8 @@ $tickItems = [
      'en' => '📄 Public quality documents available for free download'],
     ['id' => '🤝 LPM terbuka untuk konsultasi penjaminan mutu',
      'en' => '🤝 LPM is open for quality assurance consultations'],
-    ['id' => '🧑🎓 Portal Mahasiswa telah dibuka — cek EDOM & akreditasi prodi Anda',
-     'en' => '🧑‍ Student Portal is open — check your EDOM & program accreditation'],
+    ['id' => '🎓 Portal Mahasiswa telah dibuka — cek EDOM & akreditasi prodi Anda',
+     'en' => '🎓 Student Portal is open — check your EDOM & program accreditation'],
 ];
 $currentLang = lang();
 ?>
@@ -50,6 +50,13 @@ $currentLang = lang();
     <link rel="alternate" hreflang="en" href="<?= currentLangUrl('en') ?>">
     <link rel="alternate" hreflang="x-default" href="<?= currentLangUrl('id') ?>">
     <link rel="stylesheet" href="/assets/css/style.css">
+    <!-- ===== PWA META TAGS ===== -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#C9A227">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SIM-Mutu">
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
     <style>
         /* ============================================================
            HEADER ULTIMATE v8.0 — Ticker • Pulse Logo • Mega Menu • Lang Switcher
@@ -295,6 +302,37 @@ $currentLang = lang();
     .nav-cta { padding: 9px 14px; font-size: 12.5px; }
     .lang-btn { padding: 6px 9px; font-size: 10.5px; }
 }
+
+/* ===== DARK MODE TOGGLE BUTTON ===== */
+.dark-mode-toggle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-dark);
+    font-size: 18px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1001;
+    flex-shrink: 0;
+}
+.dark-mode-toggle:hover {
+    border-color: var(--accent);
+    background: rgba(201, 162, 39, 0.1);
+    transform: scale(1.05) rotate(15deg);
+}
+.dark-mode-toggle:active {
+    transform: scale(0.95);
+}
+body.dark .dark-mode-toggle {
+    background: var(--bg-card);
+    border-color: var(--border);
+}
     </style>
 </head>
 <body>
@@ -335,7 +373,7 @@ $currentLang = lang();
                         <small><?= t('services_public_desc', 'Akses cepat & transparan') ?></small>
                     </div>
                     <div class="hd-mm-grid">
-                        <a href="/publik/mahasiswa.php"><span class="hd-mm-ic">🧑🎓</span><span class="hd-mm-txt"><strong><?= t('student_portal', 'Portal Mahasiswa') ?></strong><small><?= t('student_portal_desc', 'EDOM, akreditasi prodi & pengaduan') ?></small></span></a>
+                        <a href="/publik/mahasiswa.php"><span class="hd-mm-ic">🎓</span><span class="hd-mm-txt"><strong><?= t('student_portal', 'Portal Mahasiswa') ?></strong><small><?= t('student_portal_desc', 'EDOM, akreditasi prodi & pengaduan') ?></small></span></a>
                         <a href="/publik/edom.php"><span class="hd-mm-ic">📝</span><span class="hd-mm-txt"><strong><?= t('edom', 'Evaluasi Dosen (EDOM)') ?></strong><small><?= t('edom_desc', 'Buka via tautan/QR resmi kelas') ?></small></span></a>
                         <a href="/publik/kuesioner.php"><span class="hd-mm-ic">📱</span><span class="hd-mm-txt"><strong><?= t('kuesioner_monev', 'Kuesioner Monev') ?></strong><small><?= t('kuesioner_monev_desc', 'Buka via tautan survei resmi') ?></small></span></a>
                         <a href="/publik/tracer.php"><span class="hd-mm-ic">🎓</span><span class="hd-mm-txt"><strong><?= t('tracer', 'Tracer Study Alumni') ?></strong><small><?= t('tracer_desc', 'Isi data karier Anda') ?></small></span></a>
@@ -354,10 +392,10 @@ $currentLang = lang();
         <div class="nav-actions">
             <?php require_once __DIR__ . '/lang-switcher.php'; ?>
             
-            <!-- TOMBOL DARK MODE (BARU) -->
-            <button id="darkModeToggle" class="btn btn-outline" style="padding: 8px 12px; border-radius: 50%; border-color: var(--border);" title="Ganti Mode Gelap/Terang">
-                🌙
-            </button>
+<!-- TOMBOL DARK MODE (BARU) -->
+<button id="darkModeToggle" type="button" class="dark-mode-toggle" title="Ganti Mode Gelap/Terang">
+    🌙
+</button>
 
             <button class="hamburger" id="hamburger" aria-label="Buka menu">
                 <span></span><span></span><span></span>
@@ -381,7 +419,7 @@ $currentLang = lang();
     <a href="/publik/berita.php" class="<?= $currentPage === 'berita.php' ? 'active' : '' ?>">📰 <?= t('news', 'Berita') ?></a>
     <a href="/publik/pengaduan.php" class="<?= $currentPage === 'pengaduan.php' ? 'active' : '' ?>">📨 <?= t('complaint', 'Pengaduan') ?></a>
     <div class="dw-label"><?= strtoupper(t('services', 'Layanan')) ?></div>
-    <a href="/publik/mahasiswa.php">🧑🎓 <?= t('student_portal', 'Portal Mahasiswa') ?></a>
+    <a href="/publik/mahasiswa.php">🎓 <?= t('student_portal', 'Portal Mahasiswa') ?></a>
     <a href="/publik/edom.php">📝 <?= t('edom', 'Evaluasi Dosen (EDOM)') ?></a>
     <a href="/publik/kuesioner.php">📱 <?= t('kuesioner_monev', 'Kuesioner Monev') ?></a>
     <a href="/publik/tracer.php">🎓 <?= t('tracer', 'Tracer Study Alumni') ?></a>
@@ -425,5 +463,89 @@ $currentLang = lang();
     window.addEventListener('scroll', function () {
         document.body.classList.toggle('hd-scrolled', window.scrollY > 60);
     }, { passive: true });
+
+    /* ===== DARK MODE TOGGLE ===== */
+    function initDarkMode() {
+        var darkBtn = document.getElementById('darkModeToggle');
+        if (!darkBtn) {
+            console.warn('Dark mode button not found');
+            return;
+        }
+
+        // Set initial state
+        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
+        darkBtn.textContent = isDark ? '☀️' : '🌙';
+        darkBtn.title = isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap';
+
+        // Remove existing listeners (prevent duplicates)
+        var newBtn = darkBtn.cloneNode(true);
+        darkBtn.parentNode.replaceChild(newBtn, darkBtn);
+        darkBtn = newBtn;
+
+        // Add click handler
+        darkBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Dark mode toggle clicked');
+            
+            var body = document.body;
+            var isNowDark = body.classList.toggle('dark');
+            localStorage.setItem('lpm-dark-mode', isNowDark ? 'true' : 'false');
+            
+            // Update button
+            darkBtn.textContent = isNowDark ? '☀️' : '🌙';
+            darkBtn.title = isNowDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap';
+            
+            // Sync dengan halaman publik lain (EDOM, Mahasiswa, dll)
+            if (isNowDark) {
+                body.classList.add('ed-dark', 'ms-dark');
+            } else {
+                body.classList.remove('ed-dark', 'ms-dark');
+            }
+            
+            console.log('Dark mode:', isNowDark ? 'ON' : 'OFF');
+        });
+
+        console.log('Dark mode initialized, button found');
+    }
+
+    // Initialize on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDarkMode);
+    } else {
+        initDarkMode();
+    }
 })();
+
+/* ===== PWA: SERVICE WORKER + INSTALL PROMPT ===== */
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js')
+            .then(function (reg) { console.log('SW registered:', reg.scope); })
+            .catch(function (err) { console.log('SW failed:', err); });
+    });
+}
+
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Tampilkan tombol install di footer (opsional)
+    var installBtn = document.getElementById('pwaInstallBtn');
+    if (installBtn) installBtn.style.display = 'inline-flex';
+});
+
+window.installPWA = function () {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function (choice) {
+        if (choice.outcome === 'accepted') {
+            console.log('PWA installed');
+        }
+        deferredPrompt = null;
+        var installBtn = document.getElementById('pwaInstallBtn');
+        if (installBtn) installBtn.style.display = 'none';
+    });
+};
 </script>

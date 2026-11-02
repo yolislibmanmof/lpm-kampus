@@ -230,18 +230,6 @@ require_once __DIR__ . '/../includes/header-publik.php';
 .akz-toc-link.active { background: #C9A227; box-shadow: 0 0 0 4px rgba(201,162,39,.2); transform: scale(1.4); }
 @media (max-width: 1200px) { .akz-toc { display: none; } }
 
-/* ===== DARK MODE TOGGLE ===== */
-.akz-dark-toggle {
-    position: fixed; bottom: 24px; right: 24px; z-index: 100;
-    width: 56px; height: 56px; border-radius: 50%;
-    background: linear-gradient(135deg, #C9A227, #E8C55A);
-    border: none; cursor: pointer; display: grid; place-items: center;
-    box-shadow: 0 8px 24px rgba(201,162,39,.4);
-    transition: .3s;
-}
-.akz-dark-toggle:hover { transform: scale(1.1) rotate(15deg); }
-.akz-dark-toggle svg { width: 24px; height: 24px; color: #092A40; }
-
 /* ===== DARK MODE ===== */
 body.dark-mode { background: #0F172A; color: #E2E8F0; }
 body.dark-mode .akz-stat,
@@ -603,6 +591,125 @@ body.dark-mode .akz-pill-c { background: rgba(148,163,184,.2); color: #94A3B8; }
     .akz-hero { padding: 120px 0 70px; }
     .akz-bar-label { width: 80px; }
 }
+
+/* ===== DARK MODE BRIDGE (COMPREHENSIVE) ===== */
+/* Section backgrounds */
+body.dark .akz-stat-sec {
+    background: linear-gradient(180deg, #0F172A, #1E293B);
+}
+
+/* Stats cards */
+body.dark .akz-stat {
+    background: #1E293B;
+    border-color: #334155;
+    box-shadow: 0 20px 50px rgba(0,0,0,.4);
+}
+body.dark .akz-stat-ic {
+    background: linear-gradient(135deg, #0F3D5C, #1A5A82);
+}
+body.dark .akz-num { color: #E2E8F0; }
+body.dark .akz-lbl { color: #94A3B8; }
+
+/* Panel */
+body.dark .akz-panel {
+    background: #1E293B;
+    border-color: #334155;
+    box-shadow: 0 6px 24px rgba(0,0,0,.4);
+}
+body.dark .akz-panel h3 { color: #E2E8F0; }
+body.dark .akz-bar-label { color: #E2E8F0; }
+body.dark .akz-bar-track { background: #0F172A; }
+body.dark .akz-bar-num { color: #E2E8F0; }
+
+/* Pills & Toolbar */
+body.dark .akz-pill {
+    background: rgba(30,41,59,.8);
+    border-color: rgba(51,65,85,.8);
+    color: #E2E8F0;
+}
+body.dark .akz-pill-c {
+    background: rgba(148,163,184,.2);
+    color: #94A3B8;
+}
+body.dark .akz-view-btn,
+body.dark .akz-sort-btn,
+body.dark .akz-export-btn {
+    background: rgba(30,41,59,.8);
+    border-color: rgba(51,65,85,.8);
+    color: #E2E8F0;
+}
+
+/* Cards */
+body.dark .akz-card {
+    background: #1E293B;
+    border-color: #334155;
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+}
+body.dark .akz-card h4 { color: #E2E8F0; }
+body.dark .akz-card .fak { color: #94A3B8; }
+body.dark .akz-card-meta {
+    border-top-color: #334155;
+    color: #94A3B8;
+}
+
+/* Empty state */
+body.dark .akz-empty {
+    background: rgba(30,41,59,.8);
+    border-color: rgba(51,65,85,.8);
+    color: #94A3B8;
+}
+
+/* Note */
+body.dark .akz-note {
+    background: rgba(30,41,59,.8);
+    border-color: rgba(51,65,85,.8);
+    color: #94A3B8;
+}
+
+/* Donut & Summary cards */
+body.dark .akz-donut-card,
+body.dark .akz-rank-card,
+body.dark .akz-summary-card {
+    background: rgba(30,41,59,.86);
+    border-color: rgba(51,65,85,.9);
+    box-shadow: 0 20px 50px rgba(0,0,0,.4);
+}
+body.dark .akz-donut-caption h3,
+body.dark .akz-rank-card h3 {
+    color: #E2E8F0;
+}
+body.dark .akz-donut-caption p,
+body.dark .akz-summary-card span {
+    color: #94A3B8;
+}
+body.dark .akz-donut-inner strong {
+    color: #E2E8F0;
+}
+body.dark .akz-summary-card strong {
+    color: #E2E8F0;
+}
+body.dark .akz-rank-top span {
+    color: #E2E8F0;
+}
+body.dark .akz-rank-top b {
+    color: #E2E8F0;
+}
+body.dark .akz-rank-top small {
+    color: #94A3B8;
+}
+body.dark .akz-rank-bar {
+    background: #0F172A;
+}
+
+/* Section internasional (sudah ada, pertahankan) */
+body.dark .intl-stamp {
+    background: rgba(30,41,59,.6);
+    border-color: rgba(51,65,85,.6);
+}
+body.dark .intl-stamp:hover {
+    background: rgba(15,23,42,.8);
+    border-color: rgba(201,162,39,.4);
+}
 </style>
 
 <div class="akz-progress"><div class="akz-progress-bar" id="akzProg"></div></div>
@@ -613,11 +720,6 @@ body.dark-mode .akz-pill-c { background: rgba(148,163,184,.2); color: #94A3B8; }
     <a href="#statistik-akreditasi" class="akz-toc-link" data-title="Overview"></a>
     <a href="#internasional" class="akz-toc-link" data-title="Internasional"></a>
 </nav>
-<button class="akz-dark-toggle" id="darkToggle" aria-label="Toggle dark mode">
-    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-    <svg class="moon-icon" style="display:none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-</button>
-
 <div class="akz-wrap">
 
 <!-- ===== HERO ===== -->
@@ -1016,25 +1118,26 @@ body.dark-mode .akz-pill-c { background: rgba(148,163,184,.2); color: #94A3B8; }
         });
     });
 
-    /* Dark Mode Toggle */
-    var darkToggle = document.getElementById('darkToggle');
-    var body = document.body;
-    var sunIcon = darkToggle.querySelector('.sun-icon');
-    var moonIcon = darkToggle.querySelector('.moon-icon');
-    
-    if (localStorage.getItem('akzDarkMode') === 'true') {
-        body.classList.add('dark-mode');
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
-    }
-    
-    darkToggle.addEventListener('click', function() {
-        body.classList.toggle('dark-mode');
-        var isDark = body.classList.contains('dark-mode');
-        localStorage.setItem('akzDarkMode', isDark);
-        sunIcon.style.display = isDark ? 'none' : 'block';
-        moonIcon.style.display = isDark ? 'block' : 'none';
-    });
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Sync class dark-mode dari localStorage lpm-dark-mode
+        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
+        if (isDark) document.body.classList.add('dark-mode');
+        
+        // Listen perubahan dari header publik (cross-tab)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('dark-mode', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('dark-mode', nowDark);
+        }, 500);
+    })();
 
     /* View Toggle (Grid/List) */
     var viewBtns = document.querySelectorAll('.akz-view-btn');

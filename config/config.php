@@ -108,3 +108,24 @@ if (APP_ENV === 'production') {
 }
 
 date_default_timezone_set('Asia/Jakarta');
+
+/* =====================================================
+   2FA PENDING GATE (FASE 4)
+   Selama sesi berstatus require_2fa, SEMUA halaman diblokir
+   kecuali halaman verifikasi dan logout.
+   ===================================================== */
+if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['require_2fa'])) {
+    // Token pending kadaluarsa -> paksa keluar
+    if (isset($_SESSION['require_2fa_expires']) && $_SESSION['require_2fa_expires'] < time()) {
+        $_SESSION = [];
+        if (session_status() === PHP_SESSION_ACTIVE) session_regenerate_id(true);
+        if (!headers_sent()) { header('Location: /login.php?expired=1'); exit; }
+    } else {
+        $self = $_SERVER['PHP_SELF'] ?? '';
+        $whitelist = ['/2fa-verify.php', '/logout.php'];
+        if (!in_array($self, $whitelist, true) && !headers_sent()) {
+            header('Location: /2fa-verify.php');
+            exit;
+        }
+    }
+}

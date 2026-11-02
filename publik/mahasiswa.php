@@ -161,14 +161,6 @@ body.ms-body { background: #F7F9FC; }
 .ms-progress-global-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #C9A227, #E8C55A); box-shadow: 0 0 12px rgba(201,162,39,.5); transition: width .1s linear; }
 
 /* ===== DARK MODE ===== */
-.ms-dark-toggle {
-    position: fixed; bottom: 24px; left: 24px; z-index: 1000;
-    width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
-    background: #fff; color: #0F3D5C;
-    display: grid; place-items: center; font-size: 22px;
-    box-shadow: 0 8px 24px rgba(15,61,92,.15); transition: .3s;
-}
-.ms-dark-toggle:hover { transform: scale(1.08) rotate(15deg); }
 body.ms-dark { background: #0F172A; color: #E2E8F0; }
 body.ms-dark .ms-body { background: #0F172A; }
 body.ms-dark .ms-card, body.ms-dark .ms-stats-card, body.ms-dark .ms-faq-item, body.ms-dark .ms-link-item {
@@ -547,8 +539,164 @@ body.ms-dark .ms-faq-q:hover { background: #0F172A; }
 }
 
 @media print {
-    .ms-dark-toggle, .ms-back-top, .ms-progress-global { display: none !important; }
+    .ms-back-top, .ms-progress-global { display: none !important; }
 }
+
+/* ===== DARK MODE BRIDGE (COMPREHENSIVE) ===== */
+body.dark { background: #0F172A; color: #E2E8F0; }
+body.dark .ms-body { background: #0F172A; }
+
+/* Login Card - FIX UTAMA */
+body.dark .ms-login-card {
+    background: #1E293B;
+    border-color: #334155;
+    box-shadow: 0 24px 70px rgba(0,0,0,.6);
+}
+body.dark .ms-login-card h2 { color: #E2E8F0; }
+body.dark .ms-login-card p { color: #94A3B8; }
+body.dark .ms-login-card::before {
+    background: linear-gradient(90deg, #C9A227, #1E293B, #C9A227);
+}
+
+/* NIM Input Field */
+body.dark .ms-nim-field input {
+    background: #0F172A;
+    border-color: #475569;
+    color: #E2E8F0;
+}
+body.dark .ms-nim-field input:focus {
+    border-color: #C9A227;
+    box-shadow: 0 0 0 4px rgba(201,162,39,.25);
+}
+body.dark .ms-nim-field label {
+    background: #1E293B;
+    color: #94A3B8;
+}
+body.dark .ms-nim-field-ic { color: #94A3B8; }
+
+/* Submit Button */
+body.dark .ms-submit {
+    background: linear-gradient(135deg, #C9A227, #E8C55A);
+    color: #0F172A;
+}
+
+/* Stats Cards */
+body.dark .ms-stats-card {
+    background: #1E293B;
+    border-color: #334155;
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+}
+body.dark .ms-stats-num { color: #E2E8F0; }
+body.dark .ms-stats-lbl { color: #94A3B8; }
+
+/* Profile Header (sudah gelap, tetap) */
+body.dark .ms-profile {
+    background: linear-gradient(135deg, #061D2E, #0F3D5C 60%, #12365B);
+}
+
+/* Cards Grid */
+body.dark .ms-card {
+    background: #1E293B;
+    border-color: #334155;
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+}
+body.dark .ms-card h3 { color: #E2E8F0; }
+body.dark .ms-card h3 span { color: #C9A227; }
+
+/* EDOM Items */
+body.dark .ms-edom-item {
+    background: #0F172A;
+    border-color: #334155;
+}
+body.dark .ms-edom-item:hover {
+    border-color: #C9A227;
+    background: #1E293B;
+}
+body.dark .ms-edom-info strong { color: #E2E8F0; }
+body.dark .ms-edom-info small { color: #94A3B8; }
+
+/* Riwayat Items */
+body.dark .ms-riwayat-item {
+    border-bottom-color: #334155;
+}
+body.dark .ms-riwayat-info strong { color: #E2E8F0; }
+body.dark .ms-riwayat-info small { color: #94A3B8; }
+
+/* Akreditasi Box */
+body.dark .ms-akred-box {
+    background: linear-gradient(135deg, rgba(201,162,39,.1), rgba(15,61,92,.2));
+    border-color: rgba(201,162,39,.3);
+}
+body.dark .ms-akred-info { color: #94A3B8; }
+body.dark .ms-akred-info strong { color: #E2E8F0; }
+
+/* Form Elements */
+body.dark .ms-form-label { color: #E2E8F0; }
+body.dark .ms-form-control {
+    background: #0F172A;
+    border-color: #475569;
+    color: #E2E8F0;
+}
+body.dark .ms-form-control:focus {
+    border-color: #C9A227;
+    box-shadow: 0 0 0 4px rgba(201,162,39,.25);
+}
+body.dark textarea.ms-form-control {
+    background: #0F172A;
+    color: #E2E8F0;
+}
+
+/* FAQ Items */
+body.dark .ms-faq-item {
+    background: #1E293B;
+    border-color: #334155;
+}
+body.dark .ms-faq-item:hover {
+    border-color: rgba(201,162,39,.4);
+}
+body.dark .ms-faq-q {
+    color: #E2E8F0;
+}
+body.dark .ms-faq-q:hover {
+    background: #0F172A;
+}
+body.dark .ms-faq-a p { color: #94A3B8; }
+
+/* Links */
+body.dark .ms-link-item {
+    background: #1E293B;
+    border-color: #334155;
+    color: #E2E8F0;
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
+}
+body.dark .ms-link-item:hover {
+    background: rgba(201,162,39,.1);
+    border-color: rgba(201,162,39,.4);
+}
+body.dark .ms-link-ic {
+    background: linear-gradient(135deg, #0F3D5C, #1A5A82);
+    color: #fff;
+}
+
+/* Trust Items (di hero) */
+body.dark .ms-trust-item {
+    background: rgba(255,255,255,.06);
+    border-color: rgba(255,255,255,.12);
+    color: rgba(255,255,255,.85);
+}
+
+/* Error & Success Messages */
+body.dark .ms-error {
+    background: rgba(239,68,68,.15);
+    color: #FCA5A5;
+    border-left-color: #EF4444;
+}
+body.dark .ms-success {
+    background: rgba(16,185,129,.15);
+    color: #6EE7B7;
+    border-left-color: #10B981;
+}
+
 </style>
 
 <body class="ms-body">
@@ -797,7 +945,6 @@ body.ms-dark .ms-faq-q:hover { background: #0F172A; }
     </div>
 </section>
 
-<button class="ms-dark-toggle" id="msDarkToggle" aria-label="Toggle dark mode"><?= $ic['moon'] ?></button>
 <button class="ms-back-top" id="msBackTop" aria-label="Kembali ke atas"><?= $ic['arrow_up'] ?></button>
 
 <script>
@@ -838,18 +985,26 @@ body.ms-dark .ms-faq-q:hover { background: #0F172A; }
     }, { passive: true });
     if (backTop) backTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-    /* ===== DARK MODE ===== */
-    var darkBtn = document.getElementById('msDarkToggle');
-    var savedDark = localStorage.getItem('msDark') === '1';
-    if (savedDark) {
-        document.body.classList.add('ms-dark');
-        if (darkBtn) darkBtn.innerHTML = ICON.sun;
-    }
-    if (darkBtn) darkBtn.addEventListener('click', function () {
-        var on = document.body.classList.toggle('ms-dark');
-        localStorage.setItem('msDark', on ? '1' : '0');
-        this.innerHTML = on ? ICON.sun : ICON.moon;
-    });
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Sync class ms-dark dari localStorage lpm-dark-mode
+        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
+        if (isDark) document.body.classList.add('ms-dark');
+        
+        // Listen perubahan dari header publik (cross-tab)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('ms-dark', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('ms-dark', nowDark);
+        }, 500);
+    })();
 
     /* ===== COUNTER ANIMATION ===== */
     document.querySelectorAll('[data-count]').forEach(function (el) {

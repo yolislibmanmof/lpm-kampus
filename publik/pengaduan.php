@@ -183,6 +183,58 @@ body.pg-dark .pg-faq { border-color: #334155; }
 body.pg-dark .pg-faq summary { color: #E2E8F0; }
 body.pg-dark .pg-faq[open] { border-color: rgba(201,162,39,.4); }
 body.pg-dark svg { color: inherit; }
+/* ===== BRIDGE: body.dark (dari header) → pg-dark ===== */
+body.dark { background: #0F172A; color: #E2E8F0; }
+body.dark .pg-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
+body.dark .pg-form-wrap,
+body.dark .pg-steps-card,
+body.dark .pg-faq-card,
+body.dark .pg-links-card,
+body.dark .pg-tracker-card { background: #1E293B; border-color: #334155; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+body.dark .pg-form-head h3,
+body.dark .pg-steps-card h3,
+body.dark .pg-faq-card h3,
+body.dark .pg-links-card h3,
+body.dark .pg-tracker-card h3,
+body.dark .pg-step-content h4,
+body.dark .pg-success h3,
+body.dark .pg-field input,
+body.dark .pg-field textarea,
+body.dark .pg-field select { color: #E2E8F0; }
+body.dark .pg-form-head p,
+body.dark .pg-step-content p,
+body.dark .pg-faq p,
+body.dark .pg-success p,
+body.dark .pg-secure,
+body.dark .pg-tracker-note,
+body.dark .pg-field label { color: #94A3B8; }
+body.dark .pg-field input,
+body.dark .pg-field textarea,
+body.dark .pg-field select {
+    background: #0F172A; border-color: #334155; color: #E2E8F0;
+}
+body.dark .pg-field input:focus ~ label,
+body.dark .pg-field input:not(:placeholder-shown) ~ label,
+body.dark .pg-field textarea:focus ~ label,
+body.dark .pg-field textarea:not(:placeholder-shown) ~ label,
+body.dark .pg-field select:focus ~ label { background: #1E293B; }
+body.dark .pg-field label { background: #1E293B; }
+body.dark .pg-faq { border-color: #334155; }
+body.dark .pg-faq summary { color: #E2E8F0; }
+body.dark .pg-faq[open] { border-color: rgba(201,162,39,.4); }
+body.dark .pg-field .pg-char-count { background: rgba(15,23,42,.85); }
+body.dark .pg-rating-star { color: #475569; }
+body.dark .pg-rating-star.active { color: #E8C55A; }
+body.dark .pg-upload p strong { color: #E2E8F0; }
+body.dark .pg-upload-item { background: #0F172A; border-color: #334155; color: #E2E8F0; }
+body.dark .pg-upload-item .pg-uf-name { color: #E2E8F0; }
+body.dark .pg-captcha { background: #0F172A; border-color: #334155; }
+body.dark .pg-captcha-q { color: #E2E8F0; }
+body.dark .pg-captcha input { background: #1E293B; border-color: #334155; color: #E2E8F0; }
+body.dark .pg-trk-step { background: #334155; }
+body.dark .pg-link-item { background: #0F172A; color: #E2E8F0; }
+body.dark .pg-alert.danger { background: rgba(239,68,68,.15); color: #FCA5A5; }
+body.dark svg { color: inherit; }
 
 /* ===== HERO ===== */
 .pg-hero {
@@ -834,7 +886,7 @@ body.pg-dark .pg-alert.danger { background: rgba(239,68,68,.15); color: #FCA5A5;
     </div>
 </section>
 
-<button class="pg-dark-toggle" id="pgDarkToggle" aria-label="Toggle dark mode"><?= $ic['moon'] ?></button>
+
 
 
 <script>
@@ -870,17 +922,26 @@ body.pg-dark .pg-alert.danger { background: rgba(239,68,68,.15); color: #FCA5A5;
     }, { passive: true });
     if (backTop) backTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-    var darkBtn = document.getElementById('pgDarkToggle');
-    var savedDark = localStorage.getItem('pgDark') === '1';
-    if (savedDark) {
-        document.body.classList.add('pg-dark');
-        if (darkBtn) darkBtn.innerHTML = ICON.sun;
-    }
-    if (darkBtn) darkBtn.addEventListener('click', function () {
-        var on = document.body.classList.toggle('pg-dark');
-        localStorage.setItem('pgDark', on ? '1' : '0');
-        this.innerHTML = on ? ICON.sun : ICON.moon;
-    });
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Sync class pg-dark dari localStorage lpm-dark-mode
+        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
+        if (isDark) document.body.classList.add('pg-dark');
+        
+        // Listen perubahan dari header publik (pakai storage event)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('pg-dark', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('pg-dark', nowDark);
+        }, 500);
+    })();
 
     var form = document.getElementById('pgForm');
     if (form) {

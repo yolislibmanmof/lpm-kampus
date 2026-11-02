@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline — SIM-Mutu</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #061D2E, #0F3D5C); color: #fff; padding: 20px; text-align: center; }
+.card { max-width: 500px; padding: 40px; }
+.icon { font-size: 80px; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+h1 { font-size: 28px; margin-bottom: 12px; letter-spacing: -.02em; }
+p { color: rgba(255,255,255,.8); line-height: 1.6; margin-bottom: 24px; }
+.btn { display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #C9A227, #E8C55A); color: #0F3D5C; text-decoration: none; border-radius: 50px; font-weight: 700; transition: .3s; }
+.btn:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(201,162,39,.45); }
+.status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(239,68,68,.2); border-radius: 50px; font-size: 12px; margin-bottom: 20px; }
+.status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #EF4444; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+</style>
+</head>
+<body>
+<div class="card">
+    <div class="icon">📡</div>
+    <div class="status">Tidak ada koneksi internet</div>
+    <h1>Anda sedang offline</h1>
+    <p>Halaman yang Anda coba akses membutuhkan koneksi internet. Silakan periksa koneksi Anda dan coba lagi.</p>
+    <a href="/" class="btn" onclick="event.preventDefault(); location.reload();">🔄 Coba Lagi</a>
+</div>
+<script>
+// Auto-retry saat online kembali
+window.addEventListener('online', () => {
+  setTimeout(() => location.reload(), 500);
+});
+</script>
+</body>
+</html>

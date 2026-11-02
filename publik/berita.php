@@ -257,6 +257,77 @@ if ($slug) {
 .bd-related-body h4 { font-size: 16px; color: var(--primary-dark, #0F3D5C); margin-bottom: 12px; line-height: 1.4; letter-spacing: -.01em; }
 .bd-related-body small { color: var(--text-muted, #64748b); font-size: 12px; margin-top: auto; display: flex; align-items: center; gap: 6px; }
 
+/* ===== DARK MODE BRIDGE (sync dengan header publik) ===== */
+body.dark { background: #0F172A; color: #E2E8F0; }
+body.dark .bd-body-sec,
+body.dark .bd-related,
+body.dark .bs-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
+
+/* Detail Berita */
+body.dark .bd-body { color: #CBD5E1; }
+body.dark .bd-body h2, body.dark .bd-body h3, body.dark .bd-body strong { color: #E2E8F0; }
+body.dark .bd-toc { background: #1E293B; border-color: #334155; }
+body.dark .bd-toc h4 { color: #E2E8F0; }
+body.dark .bd-toc li a { color: #94A3B8; }
+body.dark .bd-toc li a:hover { color: #E8C55A; }
+body.dark .bd-pn a { background: #1E293B; border-color: #334155; }
+body.dark .bd-pn span { color: #E2E8F0; }
+body.dark .bd-pn a:hover { border-color: rgba(201,162,39,.5); background: #0F172A; }
+body.dark .bd-related-card { background: #1E293B; border-color: #334155; }
+body.dark .bd-related-body h4 { color: #E2E8F0; }
+body.dark .bd-related-body small { color: #94A3B8; }
+body.dark .bd-tool-btn, body.dark .bd-sf-btn { background: #1E293B; border-color: #334155; color: #E2E8F0; }
+body.dark .bd-tool-btn:hover, body.dark .bd-sf-btn:hover { border-color: rgba(201,162,39,.5); background: #0F172A; }
+
+/* Daftar Berita */
+body.dark .bs-saved { background: #1E293B; border-color: #334155; }
+body.dark .bs-saved-head { background: linear-gradient(135deg, rgba(201,162,39,.08), rgba(15,61,92,.04)); border-bottom-color: #334155; color: #E2E8F0; }
+body.dark .bs-saved-head .sv-count { color: #94A3B8; }
+body.dark .bs-saved-item { border-bottom-color: #334155; }
+body.dark .bs-saved-item a:hover { background: rgba(201,162,39,.06); }
+body.dark .bs-saved-item .sv-tx { color: #E2E8F0; }
+body.dark .bs-saved-item .sv-rm { color: #94A3B8; }
+body.dark .bs-saved-item .sv-rm:hover { color: #EF4444; background: rgba(239,68,68,.08); }
+
+body.dark .bs-pill { background: #1E293B; border-color: #334155; color: #E2E8F0; }
+body.dark .bs-pill:hover { border-color: rgba(201,162,39,.5); }
+body.dark .bs-pill.active { background: linear-gradient(135deg, #C9A227, #E8C55A); color: #0F3D5C; }
+body.dark .bs-pill-c { background: rgba(255,255,255,.08); color: #E2E8F0; }
+
+body.dark .bs-toolbar { background: #1E293B; border-color: #334155; }
+body.dark .bs-tb-label { color: #94A3B8; }
+body.dark .bs-tb-btn { background: #0F172A; border-color: #334155; color: #E2E8F0; }
+body.dark .bs-tb-btn:hover { border-color: rgba(201,162,39,.5); }
+body.dark .bs-tb-btn.on { background: linear-gradient(135deg, #C9A227, #E8C55A); color: #0F3D5C; }
+body.dark .bs-tb-select { background: #0F172A; border-color: #334155; color: #E2E8F0; }
+body.dark .bs-tb-result { color: #94A3B8; }
+body.dark .bs-tb-result b { color: #E2E8F0; }
+
+body.dark .bs-featured { background: #1E293B; border-color: #334155; }
+body.dark .bs-f-body h2 { color: #E2E8F0; }
+body.dark .bs-f-body p { color: #94A3B8; }
+body.dark .bs-f-foot small { color: #94A3B8; }
+
+body.dark .bs-card { background: #1E293B; border-color: #334155; }
+body.dark .bs-card:hover { border-color: rgba(201,162,39,.4); }
+body.dark .bs-card-body h3 { color: #E2E8F0; }
+body.dark .bs-card-body p { color: #94A3B8; }
+body.dark .bs-card-foot { border-top-color: #334155; }
+body.dark .bs-card-foot small { color: #94A3B8; }
+body.dark .bs-card-link { color: #E2E8F0; }
+body.dark .bs-card:hover .bs-card-link { color: #E8C55A; }
+
+body.dark .bs-empty { background: #1E293B; border-color: #334155; }
+body.dark .bs-empty h3 { color: #E2E8F0; }
+body.dark .bs-empty p { color: #94A3B8; }
+
+body.dark .bs-pg { background: #1E293B; border-color: #334155; color: #E2E8F0; }
+body.dark .bs-pg:hover { border-color: rgba(201,162,39,.5); }
+body.dark .bs-pg.active { background: linear-gradient(135deg, #C9A227, #E8C55A); color: #0F3D5C; }
+body.dark .bs-pg-dots { color: #94A3B8; }
+
+body.dark .bs-back-top { background: linear-gradient(135deg, #C9A227, #E8C55A); color: #0F3D5C; }
+
 @media print {
     .sim-sidebar, .sim-topbar, .bd-share-float, .bd-tools-float, .bd-related, footer, .bd-back, .bd-read-progress, .bd-toc, .bd-pn { display: none !important; }
     .bd-hero { min-height: auto; padding: 40px 0; background: #fff !important; color: #000 !important; }
@@ -885,6 +956,69 @@ require_once __DIR__ . '/../includes/header-publik.php';
 
 .bs-reveal { opacity: 0; transform: translateY(30px); transition: opacity .7s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), transform .7s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); }
 .bs-reveal.bs-in { opacity: 1; transform: none; }
+.bs-reveal { opacity: 0; transform: translateY(30px); transition: opacity .7s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), transform .7s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); }
+.bs-reveal.bs-in { opacity: 1; transform: none; }
+
+/* ===== DARK MODE BRIDGE v2 — LIST VIEW (sync header publik) ===== */
+body.dark .bs-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
+
+/* Pills kategori */
+body.dark .bs-pill { background: #1E293B; border-color: #334155; color: #E2E8F0; }
+body.dark .bs-pill:hover { border-color: rgba(201,162,39,.5); background: #0F172A; }
+body.dark .bs-pill.active { background: linear-gradient(135deg, #C9A227, #E8C55A); border-color: transparent; color: #0F3D5C; }
+body.dark .bs-pill-c { background: rgba(255,255,255,.1); color: #CBD5E1; }
+body.dark .bs-pill.active .bs-pill-c { background: rgba(15,61,92,.2); color: #0F3D5C; }
+
+/* Toolbar urutkan / tampilan */
+body.dark .bs-toolbar { background: #1E293B; border-color: #334155; box-shadow: 0 4px 16px rgba(0,0,0,.3); }
+body.dark .bs-tb-label { color: #94A3B8; }
+body.dark .bs-tb-btn { background: #0F172A; border-color: #334155; color: #E2E8F0; }
+body.dark .bs-tb-btn:hover { border-color: rgba(201,162,39,.5); }
+body.dark .bs-tb-btn.on { background: linear-gradient(135deg, #C9A227, #E8C55A); border-color: transparent; color: #0F3D5C; }
+body.dark .bs-tb-select { background: #0F172A; border-color: #334155; color: #E2E8F0; }
+body.dark .bs-tb-select option { background: #1E293B; color: #E2E8F0; }
+body.dark .bs-tb-result { color: #94A3B8; }
+body.dark .bs-tb-result b { color: #E8C55A; }
+
+/* Featured / Sorotan Utama */
+body.dark .bs-featured { background: #1E293B; border-color: #334155; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+body.dark .bs-f-body h2 { color: #E2E8F0; }
+body.dark .bs-f-body p { color: #94A3B8; }
+body.dark .bs-f-foot small { color: #94A3B8; }
+body.dark .bs-cat { background: rgba(201,162,39,.15); color: #E8C55A; }
+
+/* Kartu berita */
+body.dark .bs-card { background: #1E293B; border-color: #334155; box-shadow: 0 6px 24px rgba(0,0,0,.3); }
+body.dark .bs-card:hover { border-color: rgba(201,162,39,.4); }
+body.dark .bs-card-body h3 { color: #E2E8F0; }
+body.dark .bs-card-body p { color: #94A3B8; }
+body.dark .bs-card-foot { border-top-color: #334155; }
+body.dark .bs-card-foot small { color: #94A3B8; }
+body.dark .bs-read-badge { background: rgba(201,162,39,.15); color: #E8C55A; }
+body.dark .bs-card-link { color: #CBD5E1; }
+body.dark .bs-card:hover .bs-card-link { color: #E8C55A; }
+
+/* Empty state (kotak putus-putus) */
+body.dark .bs-empty { background: #1E293B; border-color: #334155; }
+body.dark .bs-empty h3 { color: #E2E8F0; }
+body.dark .bs-empty p { color: #94A3B8; }
+body.dark .bs-empty-ico { color: #64748B; }
+
+/* Panel artikel tersimpan */
+body.dark .bs-saved { background: #1E293B; border-color: #334155; }
+body.dark .bs-saved-head { background: linear-gradient(135deg, rgba(201,162,39,.1), rgba(15,61,92,.2)); border-bottom-color: #334155; color: #E2E8F0; }
+body.dark .bs-saved-head .sv-count { color: #94A3B8; }
+body.dark .bs-saved-item { border-bottom-color: #334155; }
+body.dark .bs-saved-item a:hover { background: rgba(201,162,39,.06); }
+body.dark .bs-saved-item .sv-tx { color: #E2E8F0; }
+body.dark .bs-saved-item .sv-rm { color: #94A3B8; }
+body.dark .bs-saved-item .sv-rm:hover { color: #EF4444; background: rgba(239,68,68,.1); }
+
+/* Pagination */
+body.dark .bs-pg { background: #1E293B; border-color: #334155; color: #E2E8F0; }
+body.dark .bs-pg:hover { border-color: rgba(201,162,39,.5); background: #0F172A; }
+body.dark .bs-pg.active { background: linear-gradient(135deg, #C9A227, #E8C55A); border-color: transparent; color: #0F3D5C; }
+body.dark .bs-pg-dots { color: #94A3B8; }
 </style>
 
 <section class="bs-hero">
@@ -1154,6 +1288,23 @@ require_once __DIR__ . '/../includes/header-publik.php';
         });
     }
     renderSaved();
+
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Listen perubahan dari header publik (cross-tab)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('dark', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('dark', nowDark);
+        }, 500);
+    })();
 })();
 </script>
 

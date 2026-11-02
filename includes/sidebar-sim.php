@@ -57,6 +57,8 @@ $menus = [
         ['url' => '/sim/admin/tracer.php', 'icon' => '🎓', 'label' => 'Tracer Study', 'key' => 'tracer'],
         ['url' => '/sim/admin/responden.php', 'icon' => '🎤', 'label' => 'Responden Wawancara', 'key' => 'responden'],
         ['url' => '/sim/admin/survei-pengguna.php', 'icon' => '💼', 'label' => 'Survei Pengguna Lulusan', 'key' => 'surveipg'],
+        ['url' => '/sim/admin/sentimen-dashboard.php', 'icon' => '🧠', 'label' => 'Analisis Sentimen', 'key' => 'sentimen'],
+        ['url' => '/sim/admin/leaderboard.php', 'icon' => '🏆', 'label' => 'Leaderboard', 'key' => 'leaderboard'],
         ['url' => '/sim/laporan/pusat-laporan.php', 'icon' => '🖨️', 'label' => 'Pusat Laporan PDF', 'key' => 'puslap'],
         ['url' => '/sim/instrumen/view.php', 'icon' => '🧾', 'label' => 'Instrumen AMI', 'key' => 'instrumen'],
         ['url' => '/sim/panduan.php', 'icon' => '📘', 'label' => 'Buku Panduan', 'key' => 'panduan'],
@@ -106,7 +108,7 @@ $menuGroups = (Auth::role() == 1) ? [
     ['icon' => '👥', 'label' => 'SDM & Pengguna',  'keys' => ['users', 'gpm', 'komp', 'dosenman', 'import']],
     ['icon' => '🏆', 'label' => 'Akreditasi & Risiko', 'keys' => ['prodi', 'akreditasi', 'akrintl', 'monmatriks', 'konflik', 'risk', 'mockaudit']],
     ['icon' => '🔄', 'label' => 'AMI & RTM',       'keys' => ['standar', 'jadwal', 'instrumen', 'rtmtl']],
-    ['icon' => '📊', 'label' => 'Monev & IKU',     'keys' => ['iku', 'kuesioner', 'tracer', 'responden', 'surveipg']],
+    ['icon' => '📊', 'label' => 'Monev & Analitik','keys' => ['iku', 'kuesioner', 'tracer', 'responden', 'surveipg', 'sentimen', 'leaderboard']],
     ['icon' => '📁', 'label' => 'Dokumen Mutu',    'keys' => ['dokumen', 'kendok']],
     ['icon' => '📣', 'label' => 'Konten Publik',   'keys' => ['berita', 'pengaduan', 'profil', 'slider', 'mitra', 'milestone']],
     ['icon' => '📈', 'label' => 'Laporan',         'keys' => ['laporan', 'puslap']],
@@ -165,6 +167,9 @@ function sidebarIcon(string $icon): string
         '📣' => 'megaphone',
         '⚙️' => 'gear',
         '🚪' => 'door',
+        '🔑' => 'key',
+        '🔐' => 'lock',
+        '🧠' => 'brain',
     ];
 
     $paths = [
@@ -211,7 +216,10 @@ function sidebarIcon(string $icon): string
         'megaphone' => '<path d="m3 11 18-5v12L3 13v-2Z"/><path d="m7 14 2 7h4l-2-6m10-7v10"/>',
         'gear' => '<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z"/>',
         'door' => '<path d="M4 21h16M6 21V3h12v18m-5-9h.01"/>',
+        'key' => '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+        'lock' => '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
         'grid' => '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+        'brain' => '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2a2.5 2.5 0 0 0-2.5 2.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>',
     ];
 
     $name = $names[$icon] ?? 'grid';
@@ -319,9 +327,10 @@ function sidebarIcon(string $icon): string
     <div style="margin-top:30px;border-top:1px solid rgba(255,255,255,.1);">
         <div class="sb-label">AKUN</div>
         <nav class="sim-menu" style="margin-top:0;">
+            <a href="/sim/profil/2fa-setup.php"><span class="ic"><?= sidebarIcon('🔐') ?></span><span class="lbl">Keamanan 2FA</span></a>
             <a href="/index.php" target="_blank"><span class="ic"><?= sidebarIcon('🌐') ?></span><span class="lbl">Website Publik</span></a>
             <a href="/logout.php" class="sb-logout"><span class="ic"><?= sidebarIcon('🚪') ?></span><span class="lbl">Keluar</span></a>
         </nav>
-        <div class="sb-ver">SIM-Mutu v4.0 • © <?= date('Y') ?></div>
+        <div class="sb-ver">SIM-Mutu v4.1 • © <?= date('Y') ?></div>
     </div>
 </aside>

@@ -108,15 +108,6 @@ require_once __DIR__ . '/../includes/header-publik.php';
 .sp-progress-global-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #C9A227, #E8C55A); box-shadow: 0 0 12px rgba(201,162,39,.5); transition: width .1s linear; }
 
 /* ===== DARK MODE ===== */
-.sp-dark-toggle {
-    position: fixed; bottom: 24px; left: 24px; z-index: 1000;
-    width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
-    background: #fff; color: #0F3D5C;
-    display: grid; place-items: center; font-size: 22px;
-    box-shadow: 0 8px 24px rgba(15,61,92,.15);
-    transition: .3s;
-}
-.sp-dark-toggle:hover { transform: scale(1.08) rotate(15deg); }
 body.sp-dark { background: #0F172A; color: #E2E8F0; }
 body.sp-dark .sp-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
 body.sp-dark .sp-card { background: #1E293B; border-color: #334155; }
@@ -662,9 +653,54 @@ body.sp-dark .sp-faq-head h3 { color: #E2E8F0; }
 }
 
 @media print {
-    .sp-hero, .sp-dark-toggle, .sp-back-top, .sp-progress-global, .sp-faq, .sp-links, .sp-stats-row { display: none !important; }
-    .sp-card { box-shadow: none; border: 1px solid #000; margin-top: 0; }
+    .sp-back-top, .sp-progress-global { display: none !important; }
 }
+
+/* ===== DARK MODE BRIDGE (COMPREHENSIVE) ===== */
+body.dark { background: #0F172A; color: #E2E8F0; }
+body.dark .sp-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
+body.dark .sp-card { background: #1E293B; border-color: #334155; }
+body.dark .sp-form-body { background: #1E293B; }
+body.dark .sp-progress-wrap { background: rgba(15,23,42,.95); border-bottom-color: #334155; }
+body.dark .sp-sec-title h4,
+body.dark .sp-state h3,
+body.dark .sp-field input,
+body.dark .sp-field select,
+body.dark .sp-field textarea,
+body.dark .sp-aspect-title,
+body.dark .sp-legend-title { color: #E2E8F0; }
+body.dark .sp-sec-title small,
+body.dark .sp-state p,
+body.dark .sp-field label,
+body.dark .sp-secure,
+body.dark .sp-char-count,
+body.dark .sp-progress-label { color: #94A3B8; }
+body.dark .sp-field input,
+body.dark .sp-field select,
+body.dark .sp-field textarea { background: #0F172A; border-color: #334155; color: #E2E8F0; }
+body.dark .sp-field input:focus ~ label,
+body.dark .sp-field input:not(:placeholder-shown) ~ label,
+body.dark .sp-field select:focus ~ label,
+body.dark .sp-field.has-value label,
+body.dark .sp-field textarea:focus ~ label,
+body.dark .sp-field textarea:not(:placeholder-shown) ~ label { background: #1E293B; }
+body.dark .sp-field label { background: #1E293B; }
+body.dark .sp-aspect { background: #0F172A; border-color: #334155; }
+body.dark .sp-aspect.answered { background: linear-gradient(135deg, rgba(16,185,129,.08), rgba(201,162,39,.05)); border-color: rgba(16,185,129,.3); }
+body.dark .sp-legend { background: linear-gradient(135deg, rgba(201,162,39,.1), rgba(15,61,92,.2)); border-color: rgba(201,162,39,.3); }
+body.dark .sp-lg-item { background: #1E293B; border-color: #334155; }
+body.dark .sp-faq-item { background: #0F172A; border-color: #334155; }
+body.dark .sp-faq-item summary { color: #E2E8F0; }
+body.dark .sp-link-item { background: #0F172A; color: #E2E8F0; border-color: #334155; }
+body.dark .sp-stars label { color: #334155; }
+body.dark .sp-stars label:hover,
+body.dark .sp-stars label:hover ~ label,
+body.dark .sp-stars input:checked ~ label { color: #E8C55A; }
+body.dark .sp-steps { background: rgba(0,0,0,.2); border-bottom-color: #334155; }
+body.dark .sp-step-ind::after { background: #334155; }
+body.dark .sp-step-num { background: #334155; color: #94A3B8; }
+body.dark .sp-step-lbl { color: #94A3B8; }
+body.dark .sp-step-ind.active .sp-step-lbl { color: #E8C55A; }
 </style>
 
 <div class="sp-progress-global"><div class="sp-progress-global-bar" id="spProg"></div></div>
@@ -918,10 +954,6 @@ body.sp-dark .sp-faq-head h3 { color: #E2E8F0; }
         </div>
     </div>
 </section>
-
-<button class="sp-dark-toggle" id="spDarkToggle" aria-label="Toggle dark mode"><?= $ic['moon'] ?></button>
-<button class="sp-back-top" id="spBackTop" aria-label="Kembali ke atas"><?= $ic['arrow_up'] ?></button>
-
 <script>
 (function () {
     'use strict';
@@ -951,18 +983,26 @@ body.sp-dark .sp-faq-head h3 { color: #E2E8F0; }
     }, { passive: true });
     if (backTop) backTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-    /* ===== DARK MODE ===== */
-    var darkBtn = document.getElementById('spDarkToggle');
-    var savedDark = localStorage.getItem('spDark') === '1';
-    if (savedDark) {
-        document.body.classList.add('sp-dark');
-        if (darkBtn) darkBtn.innerHTML = ICON.sun;
-    }
-    if (darkBtn) darkBtn.addEventListener('click', function () {
-        var on = document.body.classList.toggle('sp-dark');
-        localStorage.setItem('spDark', on ? '1' : '0');
-        this.innerHTML = on ? ICON.sun : ICON.moon;
-    });
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Sync class sp-dark dari localStorage lpm-dark-mode
+        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
+        if (isDark) document.body.classList.add('sp-dark');
+        
+        // Listen perubahan dari header publik (cross-tab)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('sp-dark', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('sp-dark', nowDark);
+        }, 500);
+    })();
 
     /* ===== COUNTER ANIMATION ===== */
     document.querySelectorAll('[data-count]').forEach(function (el) {

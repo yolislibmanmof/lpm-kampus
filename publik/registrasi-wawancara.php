@@ -91,15 +91,6 @@ require_once __DIR__ . '/../includes/header-publik.php';
 .rw-progress-global-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #C9A227, #E8C55A); box-shadow: 0 0 12px rgba(201,162,39,.5); transition: width .1s linear; }
 
 /* ===== DARK MODE ===== */
-.rw-dark-toggle {
-    position: fixed; bottom: 24px; left: 24px; z-index: 1000;
-    width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
-    background: #fff; color: #0F3D5C;
-    display: grid; place-items: center; font-size: 22px;
-    box-shadow: 0 8px 24px rgba(15,61,92,.15);
-    transition: .3s;
-}
-.rw-dark-toggle:hover { transform: scale(1.08) rotate(15deg); }
 body.rw-dark { background: #0F172A; color: #E2E8F0; }
 body.rw-dark .rw-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
 body.rw-dark .rw-card { background: #1E293B; border-color: #334155; }
@@ -579,9 +570,56 @@ body.rw-dark .rw-link-item:hover { background: rgba(201,162,39,.08); }
 }
 
 @media print {
-    .rw-hero, .rw-dark-toggle, .rw-back-top, .rw-progress-global, .rw-faq, .rw-links, .rw-stats-row, .rw-info { display: none !important; }
-    .rw-card { box-shadow: none; border: 1px solid #000; margin-top: 0; }
+    .rw-back-top, .rw-progress-global { display: none !important; }
 }
+
+/* ===== DARK MODE BRIDGE (COMPREHENSIVE) ===== */
+/* Memastikan body.dark (dari header) juga memicu style rw-dark */
+body.dark { background: #0F172A; color: #E2E8F0; }
+body.dark .rw-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
+body.dark .rw-card { background: #1E293B; border-color: #334155; }
+body.dark .rw-form-body { background: #1E293B; }
+body.dark .rw-field input,
+body.dark .rw-field select,
+body.dark .rw-field textarea { background: #0F172A; border-color: #334155; color: #E2E8F0; }
+body.dark .rw-field label { background: #1E293B; color: #94A3B8; }
+body.dark .rw-field input:focus ~ label,
+body.dark .rw-field input:not(:placeholder-shown) ~ label,
+body.dark .rw-field select:focus ~ label,
+body.dark .rw-field.has-value label,
+body.dark .rw-field textarea:focus ~ label,
+body.dark .rw-field textarea:not(:placeholder-shown) ~ label { background: #1E293B; }
+body.dark .rw-segmented { background: #0F172A; border-color: #334155; }
+body.dark .rw-seg { color: #94A3B8; }
+body.dark .rw-state h3,
+body.dark .rw-info h4,
+body.dark .rw-faq h4,
+body.dark .rw-state-steps h4,
+body.dark .rw-info-item h5,
+body.dark .rw-faq-q { color: #E2E8F0; }
+body.dark .rw-state p,
+body.dark .rw-step-text,
+body.dark .rw-info-item p,
+body.dark .rw-faq-a p,
+body.dark .rw-secure,
+body.dark .rw-autosave,
+body.dark .rw-progress-text,
+body.dark .rw-char-count { color: #94A3B8; }
+body.dark .rw-state-steps { background: #0F172A; border-color: #334155; }
+body.dark .rw-info { background: linear-gradient(135deg, rgba(201,162,39,.12), rgba(15,61,92,.25)); border-color: rgba(201,162,39,.3); }
+body.dark .rw-info-item { background: #0F172A; border-color: #334155; }
+body.dark .rw-faq-item { background: #1E293B; border-color: #334155; }
+body.dark .rw-faq-q:hover { background: #0F172A; }
+body.dark .rw-alert.danger { background: rgba(239,68,68,.15); color: #FCA5A5; }
+body.dark .rw-progress-bar { background: #334155; }
+body.dark .rw-stats-card { background: #1E293B; border-color: #334155; }
+body.dark .rw-stats-num { color: #E2E8F0; }
+body.dark .rw-link-item { background: #0F172A; color: #E2E8F0; border-color: #334155; }
+body.dark .rw-steps-nav { background: rgba(0,0,0,.2); border-bottom-color: #334155; }
+body.dark .rw-step-ind::after { background: #334155; }
+body.dark .rw-step-num-i { background: #334155; color: #94A3B8; }
+body.dark .rw-step-lbl-i { color: #94A3B8; }
+body.dark .rw-step-ind.active .rw-step-lbl-i { color: #E8C55A; }
 </style>
 
 <div class="rw-progress-global"><div class="rw-progress-global-bar" id="rwProg"></div></div>
@@ -886,8 +924,6 @@ body.rw-dark .rw-link-item:hover { background: rgba(201,162,39,.08); }
     </div>
 </section>
 
-<button class="rw-dark-toggle" id="rwDarkToggle" aria-label="Toggle dark mode"><?= $ic['moon'] ?></button>
-<button class="rw-back-top" id="rwBackTop" aria-label="Kembali ke atas"><?= $ic['arrow_up'] ?></button>
 
 <script>
 (function () {
@@ -914,18 +950,26 @@ body.rw-dark .rw-link-item:hover { background: rgba(201,162,39,.08); }
     }, { passive: true });
     if (backTop) backTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-    /* ===== DARK MODE ===== */
-    var darkBtn = document.getElementById('rwDarkToggle');
-    var savedDark = localStorage.getItem('rwDark') === '1';
-    if (savedDark) {
-        document.body.classList.add('rw-dark');
-        if (darkBtn) darkBtn.innerHTML = ICON.sun;
-    }
-    if (darkBtn) darkBtn.addEventListener('click', function () {
-        var on = document.body.classList.toggle('rw-dark');
-        localStorage.setItem('rwDark', on ? '1' : '0');
-        this.innerHTML = on ? ICON.sun : ICON.moon;
-    });
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Sync class rw-dark dari localStorage lpm-dark-mode
+        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
+        if (isDark) document.body.classList.add('rw-dark');
+        
+        // Listen perubahan dari header publik (cross-tab)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('rw-dark', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('rw-dark', nowDark);
+        }, 500);
+    })();
 
     /* ===== COUNTER ANIMATION ===== */
     document.querySelectorAll('[data-count]').forEach(function (el) {

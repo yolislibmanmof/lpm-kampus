@@ -143,14 +143,6 @@ require_once __DIR__ . '/../includes/header-publik.php';
 .kq-progress-global-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #C9A227, #E8C55A); box-shadow: 0 0 12px rgba(201,162,39,.5); transition: width .1s linear; }
 
 /* ===== DARK MODE ===== */
-.kq-dark-toggle {
-    position: fixed; bottom: 24px; left: 24px; z-index: 1000;
-    width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
-    background: #fff; color: #0F3D5C;
-    display: grid; place-items: center; font-size: 22px;
-    box-shadow: 0 8px 24px rgba(15,61,92,.15); transition: .3s;
-}
-.kq-dark-toggle:hover { transform: scale(1.08) rotate(15deg); }
 body.kq-dark { background: #0F172A; color: #E2E8F0; }
 body.kq-dark .kq-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
 body.kq-dark .kq-card { background: #1E293B; border-color: #334155; }
@@ -604,9 +596,45 @@ body.kq-dark .kq-faq h4 { color: #E2E8F0; }
 }
 
 @media print {
-    .kq-hero, .kq-dark-toggle, .kq-back-top, .kq-progress-global, .kq-faq, .kq-links, .kq-stats-row { display: none !important; }
-    .kq-card { box-shadow: none; border: 1px solid #000; margin-top: 0; }
+    .kq-back-top, .kq-progress-global { display: none !important; }
 }
+
+/* ===== DARK MODE BRIDGE (COMPREHENSIVE) ===== */
+body.dark { background: #0F172A; color: #E2E8F0; }
+body.dark .kq-body { background: linear-gradient(180deg, #0F172A, #1E293B); }
+body.dark .kq-card { background: #1E293B; border-color: #334155; }
+body.dark .kq-form-body { background: #1E293B; }
+body.dark .kq-progress-wrap { background: rgba(15,23,42,.95); border-bottom-color: #334155; }
+body.dark .kq-q { border-bottom-color: #334155; }
+body.dark .kq-q.answered { background: linear-gradient(90deg, rgba(16,185,129,.08), transparent); }
+body.dark .kq-q.shake { background: rgba(239,68,68,.08); }
+body.dark .kq-q-text,
+body.dark .kq-state h3,
+body.dark .kq-faq h4,
+body.dark .kq-faq-q { color: #E2E8F0; }
+body.dark .kq-state p,
+body.dark .kq-progress-label,
+body.dark .kq-secure,
+body.dark .kq-faq-a p { color: #94A3B8; }
+body.dark .kq-stars label { color: #334155; }
+body.dark .kq-stars label:hover,
+body.dark .kq-stars label:hover ~ label,
+body.dark .kq-stars input:checked ~ label { color: #E8C55A; }
+body.dark .kq-progress-bar { background: #334155; }
+body.dark .kq-faq-item { background: #0F172A; border-color: #334155; }
+body.dark .kq-faq-q:hover { background: #1E293B; }
+body.dark .kq-alert.danger { background: rgba(239,68,68,.15); color: #FCA5A5; }
+body.dark .kq-stats-card { background: #1E293B; border-color: #334155; }
+body.dark .kq-stats-num { color: #E2E8F0; }
+body.dark .kq-link-item { background: #0F172A; color: #E2E8F0; border-color: #334155; }
+body.dark .kq-legend { background: linear-gradient(135deg, rgba(201,162,39,.12), rgba(15,61,92,.2)); border-color: rgba(201,162,39,.3); }
+body.dark .kq-lg-item { background: #0F172A; border-color: #334155; }
+body.dark .kq-steps-nav { background: rgba(0,0,0,.2); border-bottom-color: #334155; }
+body.dark .kq-step-ind::after { background: #334155; }
+body.dark .kq-step-num-i { background: #334155; color: #94A3B8; }
+body.dark .kq-step-lbl-i { color: #94A3B8; }
+body.dark .kq-step-ind.active .kq-step-lbl-i { color: #E8C55A; }
+body.dark .kq-aspect-sep { border-bottom-color: #334155; }
 </style>
 
 <div class="kq-progress-global"><div class="kq-progress-global-bar" id="kqProg"></div></div>
@@ -839,8 +867,6 @@ body.kq-dark .kq-faq h4 { color: #E2E8F0; }
     </div>
 </section>
 
-<button class="kq-dark-toggle" id="kqDarkToggle" aria-label="Toggle dark mode"><?= $ic['moon'] ?></button>
-
 <script>
 (function () {
     'use strict';
@@ -870,19 +896,26 @@ body.kq-dark .kq-faq h4 { color: #E2E8F0; }
     }, { passive: true });
     if (backTop) backTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-    /* ===== DARK MODE ===== */
-    var darkBtn = document.getElementById('kqDarkToggle');
-    var savedDark = localStorage.getItem('kqDark') === '1';
-    if (savedDark) {
-        document.body.classList.add('kq-dark');
-        if (darkBtn) darkBtn.innerHTML = ICON.sun;
-    }
-    if (darkBtn) darkBtn.addEventListener('click', function () {
-        var on = document.body.classList.toggle('kq-dark');
-        localStorage.setItem('kqDark', on ? '1' : '0');
-        this.innerHTML = on ? ICON.sun : ICON.moon;
-    });
-
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Sync class kq-dark dari localStorage lpm-dark-mode
+        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
+        if (isDark) document.body.classList.add('kq-dark');
+        
+        // Listen perubahan dari header publik (cross-tab)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('kq-dark', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('kq-dark', nowDark);
+        }, 500);
+    })();
     /* ===== COUNTER ANIMATION ===== */
     document.querySelectorAll('[data-count]').forEach(function (el) {
         var target = parseFloat(el.getAttribute('data-count')) || 0;

@@ -671,6 +671,63 @@ require_once __DIR__ . '/../includes/header-publik.php';
 
 .pr-empty { grid-column: 1/-1; text-align: center; padding: 60px; color: #64748B; }
 .pr-empty.dark { color: rgba(255,255,255,.5); }
+
+/* ===== DARK MODE BRIDGE (sync dengan header publik) ===== */
+/* Section backgrounds */
+body.dark .pr-sec.light { background: #0F172A; }
+body.dark .pr-sec.soft { background: linear-gradient(180deg, #0F172A, #1E293B); }
+
+/* Bento cards (section "Tentang Kami") */
+body.dark .pr-bn { background: #1E293B; border-color: #334155; box-shadow: 0 6px 24px rgba(0,0,0,.4); }
+body.dark .pr-bn:hover { border-color: rgba(201,162,39,.4); }
+body.dark .pr-bn h3 { color: #E2E8F0; }
+body.dark .pr-bn p { color: #94A3B8; }
+body.dark .pr-bn.hl { background: linear-gradient(135deg, rgba(201,162,39,.1), rgba(15,61,92,.2)); border-color: rgba(201,162,39,.3); }
+
+/* Core Values cards */
+body.dark .pr-val { background: #1E293B; border-color: #334155; box-shadow: 0 4px 20px rgba(0,0,0,.3); }
+body.dark .pr-val:hover { border-color: rgba(201,162,39,.4); }
+body.dark .pr-val h3 { color: #E2E8F0; }
+body.dark .pr-val p { color: #94A3B8; }
+
+/* Timeline PPEPP steps */
+body.dark .pr-tl-step h3 { color: #E2E8F0; }
+body.dark .pr-tl-step p { color: #94A3B8; }
+
+/* Tupoksi cards */
+body.dark .pr-tf { background: #1E293B; border-color: #334155; box-shadow: 0 6px 24px rgba(0,0,0,.4); }
+body.dark .pr-tf:hover { border-color: rgba(201,162,39,.4); }
+body.dark .pr-tf h3 { color: #E2E8F0; }
+body.dark .pr-tf p { color: #94A3B8; }
+
+/* Legalitas cards */
+body.dark .pr-lg { background: #1E293B; border-color: #334155; box-shadow: 0 6px 22px rgba(0,0,0,.4); }
+body.dark .pr-lg:hover { border-color: rgba(201,162,39,.4); }
+body.dark .pr-lg-year { background: rgba(201,162,39,.15); color: #E8C55A; }
+body.dark .pr-lg h4 { color: #E2E8F0; }
+body.dark .pr-lg-foot { border-top-color: #334155; }
+body.dark .pr-lg-empty { color: #94A3B8; }
+
+/* FAQ accordion */
+body.dark .pr-faq-item { background: #1E293B; border-color: #334155; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+body.dark .pr-faq-item:hover { border-color: rgba(201,162,39,.3); }
+body.dark .pr-faq-item.active { border-color: rgba(201,162,39,.5); }
+body.dark .pr-faq-q { color: #E2E8F0; }
+body.dark .pr-faq-arrow { color: #94A3B8; }
+body.dark .pr-faq-item.active .pr-faq-arrow { color: #C9A227; }
+body.dark .pr-faq-a p { color: #94A3B8; }
+
+/* Headings */
+body.dark .pr-head h2 { color: #E2E8F0; }
+body.dark .pr-head p { color: #94A3B8; }
+body.dark .pr-head h2 em { color: #E8C55A; }
+
+/* Milestone timeline (second style block) */
+body.dark .prx-card { background: #1E293B; border-color: #334155; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+body.dark .prx-card:hover { border-color: rgba(201,162,39,.4); }
+body.dark .prx-card h3 { color: #E2E8F0; }
+body.dark .prx-card p { color: #94A3B8; }
+body.dark .prx-dot { background: #1E293B; border-color: #C9A227; }
 </style>
 
 <div class="pr-progress"><div class="pr-progress-bar" id="prProg"></div></div>
@@ -1194,6 +1251,23 @@ try { $milestones = $db->query("SELECT * FROM milestone ORDER BY urutan, tahun")
             if (sec.id) tocObserver.observe(sec);
         });
     }
+
+    /* ===== SYNC DARK MODE DENGAN HEADER PUBLIK ===== */
+    (function () {
+        // Listen perubahan dari header publik (cross-tab)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark-mode') {
+                var nowDark = e.newValue === 'true';
+                document.body.classList.toggle('dark', nowDark);
+            }
+        });
+        
+        // Cek setiap 500ms untuk sync jika user toggle di header (same tab)
+        setInterval(function () {
+            var nowDark = localStorage.getItem('lpm-dark-mode') === 'true';
+            document.body.classList.toggle('dark', nowDark);
+        }, 500);
+    })();
 })();
 </script>
 

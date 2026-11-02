@@ -1,5 +1,6 @@
 <?php
 require_once 'config/config.php';
+require_once 'core/TotpAuth.php';
 Security::sendHeaders();
 
 if (Auth::check()) { header('Location: /sim/index.php'); exit; }
@@ -15,7 +16,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Email dan password wajib diisi.';
     } else {
         $result = Auth::attempt($email, $password);
-        if ($result['success']) { header('Location: /sim/index.php'); exit; }
+        if ($result['success']) {
+            // ===== 2FA GATE (Fase 4) =====
+            $uid = (int)Auth::id();
+            if ($uid > 0 && TotpAuth::is2faEnabled($uid)) {
+                $_SESSION['require_2fa'] = true;
+                $_SESSION['require_2fa_expires'] = time() + 300; // 5 menit
+                Logger::log('LOGIN', '2FA challenge issued for user #' . $uid);
+                header('Location: /2fa-verify.php');
+                exit;
+            }
+            header('Location: /sim/index.php'); exit;
+        }
         $error = $result['message'];
     }
 }
