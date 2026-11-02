@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
-Auth::requireRole([1, 2, 3, 4]);
+Auth::requireRole([1, 2, 3, 4, 5]);
 $simTitle = 'Buku Panduan Pengguna';
 $activeMenu = 'panduan';
 require_once __DIR__ . '/../includes/header-sim.php';

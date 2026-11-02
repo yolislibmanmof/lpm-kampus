@@ -37,6 +37,7 @@ $menus = [
         ['url' => '/sim/prodi/mock-audit.php', 'icon' => '🎯', 'label' => 'Simulasi Akreditasi', 'key' => 'mockaudit'],
         ['url' => '/sim/admin/logs.php', 'icon' => '📜', 'label' => 'Audit Trail', 'key' => 'logs'],
         ['url' => '/sim/admin/integrasi.php', 'icon' => '🔗', 'label' => 'Integrasi Data', 'key' => 'integrasi'],
+        ['url' => '/sim/admin/api-tokens.php', 'icon' => '🔑', 'label' => 'API Tokens', 'key' => 'apitokens'],
         ['url' => '/sim/admin/tenggat.php', 'icon' => '⏰', 'label' => 'Tenggat & Reminder', 'key' => 'tenggat'],
         ['url' => '/sim/admin/email.php', 'icon' => '✉️', 'label' => 'Pengaturan Email', 'key' => 'email'],
         ['url' => '/sim/panduan.php', 'icon' => '📘', 'label' => 'Buku Panduan', 'key' => 'panduan'],
@@ -90,7 +91,9 @@ $menus = [
     ],
     5 => [
         ['url' => '/sim/index.php', 'icon' => '📊', 'label' => 'Dashboard', 'key' => 'dashboard'],
-        ['url' => '/sim/prodi/mock-audit.php', 'icon' => '🎯', 'label' => 'Simulasi Akreditasi', 'key' => 'mockaudit'],
+        ['url' => '/sim/gpm/risk-register.php', 'icon' => '⚠️', 'label' => 'Risiko Fakultas', 'key' => 'riskfak'],
+        ['url' => '/sim/gpm/mock-audit.php', 'icon' => '🎯', 'label' => 'Simulasi Fakultas', 'key' => 'mockfak'],
+        ['url' => '/sim/gpm/temuan-audit.php', 'icon' => '🔍', 'label' => 'Temuan Fakultas', 'key' => 'temuanfak'],
         ['url' => '/sim/instrumen/view.php', 'icon' => '🧾', 'label' => 'Instrumen AMI', 'key' => 'instrumen'],
         ['url' => '/sim/panduan.php', 'icon' => '📘', 'label' => 'Buku Panduan', 'key' => 'panduan'],
     ],
@@ -107,7 +110,7 @@ $menuGroups = (Auth::role() == 1) ? [
     ['icon' => '📁', 'label' => 'Dokumen Mutu',    'keys' => ['dokumen', 'kendok']],
     ['icon' => '📣', 'label' => 'Konten Publik',   'keys' => ['berita', 'pengaduan', 'profil', 'slider', 'mitra', 'milestone']],
     ['icon' => '📈', 'label' => 'Laporan',         'keys' => ['laporan', 'puslap']],
-    ['icon' => '⚙️', 'label' => 'Sistem',          'keys' => ['logs', 'integrasi', 'tenggat', 'email', 'panduan']],
+    ['icon' => '⚙️', 'label' => 'Sistem',          'keys' => ['logs', 'integrasi', 'apitokens', 'tenggat', 'email', 'panduan']],
 ] : null;
 
 $byKey = [];

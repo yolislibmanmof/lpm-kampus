@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__, 2) . '/config/config.php';
-Auth::requireRole([1, 2, 3, 4]);
+Auth::requireRole([1, 2, 3, 4, 5]);
 $db = Database::getInstance();
 
 $list = $db->query("SELECT * FROM instrumen_tahun ORDER BY tahun DESC")->fetchAll();

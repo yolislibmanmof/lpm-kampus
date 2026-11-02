@@ -29,6 +29,8 @@ $tickItems = [
      'en' => '📄 Public quality documents available for free download'],
     ['id' => '🤝 LPM terbuka untuk konsultasi penjaminan mutu',
      'en' => '🤝 LPM is open for quality assurance consultations'],
+    ['id' => '🧑🎓 Portal Mahasiswa telah dibuka — cek EDOM & akreditasi prodi Anda',
+     'en' => '🧑‍ Student Portal is open — check your EDOM & program accreditation'],
 ];
 $currentLang = lang();
 ?>
@@ -296,8 +298,6 @@ $currentLang = lang();
     </style>
 </head>
 <body>
-
-<body>
 <!-- CEK DARK MODE SEGERA UNTUK MENCEGAH FLASH PUTIH -->
 <script>
     if (localStorage.getItem('lpm-dark-mode') === 'true') {
@@ -335,12 +335,12 @@ $currentLang = lang();
                         <small><?= t('services_public_desc', 'Akses cepat & transparan') ?></small>
                     </div>
                     <div class="hd-mm-grid">
+                        <a href="/publik/mahasiswa.php"><span class="hd-mm-ic">🧑🎓</span><span class="hd-mm-txt"><strong><?= t('student_portal', 'Portal Mahasiswa') ?></strong><small><?= t('student_portal_desc', 'EDOM, akreditasi prodi & pengaduan') ?></small></span></a>
+                        <a href="/publik/edom.php"><span class="hd-mm-ic">📝</span><span class="hd-mm-txt"><strong><?= t('edom', 'Evaluasi Dosen (EDOM)') ?></strong><small><?= t('edom_desc', 'Buka via tautan/QR resmi kelas') ?></small></span></a>
+                        <a href="/publik/kuesioner.php"><span class="hd-mm-ic">📱</span><span class="hd-mm-txt"><strong><?= t('kuesioner_monev', 'Kuesioner Monev') ?></strong><small><?= t('kuesioner_monev_desc', 'Buka via tautan survei resmi') ?></small></span></a>
                         <a href="/publik/tracer.php"><span class="hd-mm-ic">🎓</span><span class="hd-mm-txt"><strong><?= t('tracer', 'Tracer Study Alumni') ?></strong><small><?= t('tracer_desc', 'Isi data karier Anda') ?></small></span></a>
                         <a href="/publik/registrasi-wawancara.php"><span class="hd-mm-ic">🎤</span><span class="hd-mm-txt"><strong><?= t('respondent', 'Responden Wawancara') ?></strong><small><?= t('respondent_desc', 'Daftar calon responden asesor') ?></small></span></a>
                         <a href="/publik/survei-pengguna.php"><span class="hd-mm-ic">💼</span><span class="hd-mm-txt"><strong><?= t('user_survey', 'Survei Pengguna Lulusan') ?></strong><small><?= t('user_survey_desc', 'Penilaian instansi / employer') ?></small></span></a>
-                        <a href="/publik/dokumen.php"><span class="hd-mm-ic">📚</span><span class="hd-mm-txt"><strong><?= t('download_form', 'Unduh Formulir') ?></strong><small><?= t('download_form_desc', 'Dokumen mutu publik') ?></small></span></a>
-                        <a href="/publik/berita.php?kategori=Agenda"><span class="hd-mm-ic">📅</span><span class="hd-mm-txt"><strong><?= t('ami_schedule', 'Jadwal AMI') ?></strong><small><?= t('ami_schedule_desc', 'Agenda audit terkini') ?></small></span></a>
-                        <a href="/publik/pengaduan.php"><span class="hd-mm-ic">📨</span><span class="hd-mm-txt"><strong><?= t('complaint_full', 'Pengaduan & Kritik') ?></strong><small><?= t('complaint_desc', 'Sampaikan aspirasi Anda') ?></small></span></a>
                     </div>
                     <a href="/login.php" class="hd-mm-foot">
                         <span><strong>🔐 <?= t('portal_sim', 'Portal SIM-Mutu') ?></strong><small><?= t('portal_sim_desc', 'Masuk sistem internal bagi civitas akademika') ?></small></span>
@@ -381,10 +381,12 @@ $currentLang = lang();
     <a href="/publik/berita.php" class="<?= $currentPage === 'berita.php' ? 'active' : '' ?>">📰 <?= t('news', 'Berita') ?></a>
     <a href="/publik/pengaduan.php" class="<?= $currentPage === 'pengaduan.php' ? 'active' : '' ?>">📨 <?= t('complaint', 'Pengaduan') ?></a>
     <div class="dw-label"><?= strtoupper(t('services', 'Layanan')) ?></div>
+    <a href="/publik/mahasiswa.php">🧑🎓 <?= t('student_portal', 'Portal Mahasiswa') ?></a>
+    <a href="/publik/edom.php">📝 <?= t('edom', 'Evaluasi Dosen (EDOM)') ?></a>
+    <a href="/publik/kuesioner.php">📱 <?= t('kuesioner_monev', 'Kuesioner Monev') ?></a>
     <a href="/publik/tracer.php">🎓 <?= t('tracer', 'Tracer Study Alumni') ?></a>
     <a href="/publik/registrasi-wawancara.php">🎤 <?= t('respondent', 'Responden Wawancara') ?></a>
     <a href="/publik/survei-pengguna.php">💼 <?= t('user_survey', 'Survei Pengguna Lulusan') ?></a>
-    <a href="/publik/berita.php?kategori=Agenda">📅 <?= t('ami_schedule', 'Jadwal AMI') ?></a>
     <a href="/login.php" class="btn btn-primary">🔐 <?= t('portal_sim', 'Masuk SIM-Mutu') ?></a>
 </div>
 
