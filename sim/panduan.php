@@ -29,6 +29,88 @@ $brand = Site::setting('brand_utama', 'LPM') . ' ' . Site::setting('brand_aksen'
     <p style="opacity:.85;position:relative;max-width:640px;">Manual resmi penggunaan sistem per peran. Klik "Cetak / Simpan PDF" lalu pilih <i>Save as PDF</i> untuk membagikan dokumen ini.</p>
 </div>
 
+<?php
+// ===== INTEGRASI WIKI KB (FASE 2) =====
+require_once __DIR__ . '/../core/KnowledgeBase.php';
+
+// 🛠️ PERBAIKAN: Inisialisasi koneksi database agar variabel $db tersedia
+$db = Database::getInstance(); 
+
+$kbSearch = $_GET['kb_q'] ?? null;
+$kbModul = $_GET['kb_modul'] ?? null;
+$kbSlug = $_GET['kb_slug'] ?? null;
+
+if ($kbSlug) {
+    $kbArticle = KnowledgeBase::getBySlug($kbSlug);
+} else {
+    $kbResults = $kbSearch ? KnowledgeBase::search($kbSearch, $kbModul) : [];
+    
+    // Sekarang $db sudah terdefinisi, query ini akan berjalan aman
+    try {
+        $kbPopular = $db->query("SELECT id_kb, judul, slug, views FROM knowledge_base WHERE is_published=1 ORDER BY views DESC LIMIT 5")->fetchAll();
+    } catch (Throwable $e) {
+        $kbPopular = []; // Fallback aman jika tabel belum di-import
+    }
+}
+?>
+
+<!-- ===== WIKI KB: PENCARIAN CEPAT ===== -->
+<div class="card" style="margin-bottom:24px;border:2px solid var(--accent);background:linear-gradient(135deg,rgba(201,162,39,.05),rgba(15,61,92,.03));">
+    <div style="padding:20px;">
+        <h3 style="margin:0 0 14px;border:none;padding:0;">🔍 Pencarian Cepat Pusat Bantuan</h3>
+        <form method="GET" style="display:flex;gap:10px;margin-bottom:14px;">
+            <input type="hidden" name="section" value="kb">
+            <input type="text" name="kb_q" value="<?= Security::e($kbSearch) ?>" 
+                   placeholder="Ketik kata kunci... (misal: cara upload, AMI, EDOM)" 
+                   style="flex:1;padding:10px 14px;border-radius:10px;border:1px solid var(--border);font-size:14px;">
+            <select name="kb_modul" style="padding:10px;border-radius:10px;border:1px solid var(--border);">
+                <option value="">Semua Modul</option>
+                <option value="ami" <?= $kbModul==='ami'?'selected':'' ?>>AMI</option>
+                <option value="edom" <?= $kbModul==='edom'?'selected':'' ?>>EDOM</option>
+                <option value="tracer" <?= $kbModul==='tracer'?'selected':'' ?>>Tracer Study</option>
+                <option value="akreditasi" <?= $kbModul==='akreditasi'?'selected':'' ?>>Akreditasi</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Cari</button>
+        </form>
+
+        <?php if ($kbSlug && !empty($kbArticle)): ?>
+            <!-- Tampilan Artikel -->
+            <div style="padding:16px;background:#fff;border-radius:10px;">
+                <span class="badge bg-primary"><?= Security::e($kbArticle['kategori']) ?></span>
+                <h4 style="margin:10px 0 6px;"><?= Security::e($kbArticle['judul']) ?></h4>
+                <div style="line-height:1.7;font-size:14px;"><?= $kbArticle['konten'] ?></div>
+                <a href="/sim/panduan.php" class="btn btn-sm btn-outline" style="margin-top:12px;">← Kembali</a>
+            </div>
+        <?php elseif ($kbSearch): ?>
+            <!-- Hasil Pencarian -->
+            <?php if (empty($kbResults)): ?>
+                <p style="text-align:center;color:var(--text-muted);padding:14px;">😔 Tidak ditemukan artikel yang cocok.</p>
+            <?php else: ?>
+                <div style="display:grid;gap:8px;">
+                    <?php foreach (array_slice($kbResults, 0, 5) as $r): ?>
+                        <a href="/sim/panduan.php?kb_slug=<?= $r['slug'] ?>" style="display:block;padding:10px 14px;background:#fff;border-radius:8px;text-decoration:none;color:var(--text-dark);border:1px solid var(--border);">
+                            <strong><?= Security::e($r['judul']) ?></strong>
+                            <small style="display:block;color:var(--text-muted);">📂 <?= Security::e($r['kategori']) ?> • 👁️ <?= $r['views'] ?></small>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <!-- Artikel Populer -->
+            <div style="font-size:13px;">
+                <strong style="color:var(--text-muted);">🔥 Artikel Populer:</strong>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+                    <?php foreach ($kbPopular as $p): ?>
+                        <a href="/sim/panduan.php?kb_slug=<?= $p['slug'] ?>" style="padding:6px 12px;background:#fff;border-radius:20px;text-decoration:none;color:var(--text-dark);border:1px solid var(--border);font-size:12px;">
+                            <?= Security::e($p['judul']) ?>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
 <div class="no-print" style="margin-bottom:24px;">
     <button class="btn btn-gold" onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
 </div>

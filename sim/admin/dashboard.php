@@ -71,20 +71,24 @@ try {
     ")->fetchAll();
 } catch (Throwable $e) {}
 
-// 4) Reminder Review Dokumen (kolom asli: review_berikutnya, alur_status, judul_dokumen)
-$reviewDokumen = [];
-try {
-    $reviewDokumen = $db->query("
-        SELECT d.judul_dokumen, d.kode_dokumen, d.review_berikutnya, d.alur_status, k.nama_kategori
-        FROM dokumen_mutu d
-        LEFT JOIN kategori_dokumen k ON d.id_kategori = k.id_kategori
-        WHERE d.status = 'Aktif'
-          AND ( (d.review_berikutnya IS NOT NULL AND d.review_berikutnya <= DATE_ADD(CURDATE(), INTERVAL 90 DAY))
-                OR d.alur_status = 'Perlu Revisi' )
-        ORDER BY (d.alur_status = 'Perlu Revisi') DESC, d.review_berikutnya ASC
-        LIMIT 6
-    ")->fetchAll();
-} catch (Throwable $e) {}
+// 4) 🆕 UPGRADE: Reminder Review Dokumen dengan DocumentLifecycle (Fase 1)
+require_once dirname(__DIR__, 2) . '/core/DocumentLifecycle.php';
+
+$dokumenReviewAll = DocumentLifecycle::getDokumenPerluReview();
+
+// Hitung statistik untuk mini-dashboard
+$statsReview = [
+    'aman'    => count(array_filter($dokumenReviewAll, fn($d) => $d['status_review'] === 'Aman')),
+    'segera'  => count(array_filter($dokumenReviewAll, fn($d) => $d['status_review'] === 'Segera')),
+    'kritis'  => count(array_filter($dokumenReviewAll, fn($d) => $d['status_review'] === 'Kritis')),
+    'expired' => count(array_filter($dokumenReviewAll, fn($d) => $d['status_review'] === 'Kedaluwarsa')),
+];
+
+// Filter hanya yang butuh perhatian (bukan 'Aman'), ambil 6 teratas agar UI tetap rapi
+$reviewDokumen = array_slice(
+    array_filter($dokumenReviewAll, fn($d) => $d['status_review'] !== 'Aman'), 
+    0, 6
+);
 
 // 5) Pengingat Tenggat (tabel pengingat_tenggat, dipakai juga oleh core/Reminder.php)
 $tenggatList = [];
@@ -334,6 +338,26 @@ require_once dirname(__DIR__, 2) . '/includes/header-sim.php';
     </div>
 
     <div class="card">
+                <!-- 🆕 MINI STATS: KESEHATAN DOKUMEN -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+            <div style="padding:10px;border-radius:8px;background:rgba(16,185,129,.1);text-align:center;">
+                <div style="font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.5px;">AMAN</div>
+                <div style="font-size:20px;font-weight:800;color:#059669;"><?= $statsReview['aman'] ?></div>
+            </div>
+            <div style="padding:10px;border-radius:8px;background:rgba(245,158,11,.1);text-align:center;">
+                <div style="font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.5px;">SEGERA</div>
+                <div style="font-size:20px;font-weight:800;color:#D97706;"><?= $statsReview['segera'] ?></div>
+            </div>
+            <div style="padding:10px;border-radius:8px;background:rgba(239,68,68,.1);text-align:center;">
+                <div style="font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.5px;">KRITIS</div>
+                <div style="font-size:20px;font-weight:800;color:#DC2626;"><?= $statsReview['kritis'] ?></div>
+            </div>
+            <div style="padding:10px;border-radius:8px;background:rgba(107,114,128,.1);text-align:center;">
+                <div style="font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:.5px;">EXPIRED</div>
+                <div style="font-size:20px;font-weight:800;color:#4B5563;"><?= $statsReview['expired'] ?></div>
+            </div>
+        </div>
+        <hr style="border:0;border-top:1px solid var(--border);margin:0 0 16px 0;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <h3>🔔 Reminder Review & Tenggat</h3>
             <a href="/sim/admin/dokumen.php" class="btn btn-outline" style="padding:6px 12px;font-size:12px;">Kelola</a>
@@ -352,8 +376,13 @@ require_once dirname(__DIR__, 2) . '/includes/header-sim.php';
                     <strong><?= Security::e($d['judul_dokumen']) ?></strong>
                     <small><?= Security::e($d['nama_kategori'] ?? '—') ?><?= $d['review_berikutnya'] ? ' • Review: ' . date('d M Y', strtotime($d['review_berikutnya'])) : '' ?></small>
                 </div>
-                <span class="reminder-badge <?= $critical ? 'critical' : ($soon ? 'soon' : '') ?>">
-                    <?= $perluRevisi ? '⚠️ Perlu Revisi' : (($days !== null && $days < 0) ? 'Lewat ' . abs($days) . ' hari' : $days . ' hari') ?>
+                <span class="reminder-badge <?= $d['status_review'] === 'Kedaluwarsa' ? 'critical' : ($d['status_review'] === 'Kritis' ? 'critical' : 'soon') ?>">
+                    <?php
+                    if ($d['status_review'] === 'Kedaluwarsa') echo '❌ Kedaluwarsa';
+                    elseif ($d['status_review'] === 'Kritis') echo '🚨 Kritis';
+                    elseif ($d['status_review'] === 'Segera') echo '⚠️ Segera';
+                    else echo '📅 ' . $d['status_review'];
+                    ?>
                 </span>
             </div>
             <?php endforeach; ?>

@@ -9,7 +9,6 @@ $menus = [
         // --- BARU: Ditambahkan ke kelompok Dokumen Mutu / Akreditasi ---
         ['url' => '/sim/admin/akreditasi.php', 'icon' => '🏆', 'label' => 'Manajemen Akreditasi', 'key' => 'akreditasi'],
         ['url' => '/sim/admin/standar.php', 'icon' => '📐', 'label' => 'Standar & Instrumen AMI', 'key' => 'standar'],
-        
         ['url' => '/sim/admin/dokumen.php', 'icon' => '📁', 'label' => 'Dokumen PPEPP', 'key' => 'dokumen'],
         ['url' => '/sim/admin/kendali-dokumen.php', 'icon' => '📑', 'label' => 'Kendali Dokumen', 'key' => 'kendok'],
         ['url' => '/sim/admin/matriks-monitor.php', 'icon' => '🗂️', 'label' => 'Monitor Kesiapan', 'key' => 'monmatriks'],
@@ -34,7 +33,10 @@ $menus = [
         ['url' => '/sim/admin/mitra.php', 'icon' => '🏛️', 'label' => 'Mitra & Pengakuan', 'key' => 'mitra'],
         ['url' => '/sim/admin/milestone.php', 'icon' => '📜', 'label' => 'Milestone Lembaga', 'key' => 'milestone'],
         ['url' => '/sim/admin/akreditasi-intl.php', 'icon' => '🌍', 'label' => 'Akreditasi Internasional', 'key' => 'akrintl'],
+        ['url' => '/sim/admin/risk-register.php', 'icon' => '⚠️', 'label' => 'Manajemen Risiko', 'key' => 'risk'],
+        ['url' => '/sim/prodi/mock-audit.php', 'icon' => '🎯', 'label' => 'Simulasi Akreditasi', 'key' => 'mockaudit'],
         ['url' => '/sim/admin/logs.php', 'icon' => '📜', 'label' => 'Audit Trail', 'key' => 'logs'],
+        ['url' => '/sim/admin/integrasi.php', 'icon' => '🔗', 'label' => 'Integrasi Data', 'key' => 'integrasi'],
         ['url' => '/sim/admin/tenggat.php', 'icon' => '⏰', 'label' => 'Tenggat & Reminder', 'key' => 'tenggat'],
         ['url' => '/sim/admin/email.php', 'icon' => '✉️', 'label' => 'Pengaturan Email', 'key' => 'email'],
         ['url' => '/sim/panduan.php', 'icon' => '📘', 'label' => 'Buku Panduan', 'key' => 'panduan'],
@@ -50,6 +52,7 @@ $menus = [
         ['url' => '/sim/pimpinan/iku.php', 'icon' => '📊', 'label' => 'Dasbor IKU', 'key' => 'iku'],
         ['url' => '/sim/pimpinan/rekomendasi.php', 'icon' => '🤖', 'label' => 'Rekomendasi AI', 'key' => 'rekom'],
         ['url' => '/sim/pimpinan/benchmark.php', 'icon' => '🌐', 'label' => 'Benchmark & Analitik', 'key' => 'bench'],
+        ['url' => '/sim/admin/risk-register.php', 'icon' => '⚠️', 'label' => 'Manajemen Risiko', 'key' => 'risk'],
         ['url' => '/sim/admin/tracer.php', 'icon' => '🎓', 'label' => 'Tracer Study', 'key' => 'tracer'],
         ['url' => '/sim/admin/responden.php', 'icon' => '🎤', 'label' => 'Responden Wawancara', 'key' => 'responden'],
         ['url' => '/sim/admin/survei-pengguna.php', 'icon' => '💼', 'label' => 'Survei Pengguna Lulusan', 'key' => 'surveipg'],
@@ -72,6 +75,8 @@ $menus = [
         ['url' => '/sim/prodi/statistik-mahasiswa.php', 'icon' => '📊', 'label' => 'Statistik Mahasiswa', 'key' => 'statmhs'],
         ['url' => '/sim/prodi/riwayat.php', 'icon' => '📜', 'label' => 'Riwayat Audit', 'key' => 'riwayat'],
         ['url' => '/sim/prodi/dokumen.php', 'icon' => '📄', 'label' => 'Dokumen Mutu', 'key' => 'dokumen'],
+        ['url' => '/sim/prodi/mock-audit.php', 'icon' => '🎯', 'label' => 'Simulasi Akreditasi', 'key' => 'mockaudit'],
+        ['url' => '/sim/admin/risk-register.php', 'icon' => '⚠️', 'label' => 'Manajemen Risiko', 'key' => 'risk'],
         ['url' => '/sim/instrumen/view.php', 'icon' => '🧾', 'label' => 'Instrumen AMI', 'key' => 'instrumen'],
         ['url' => '/sim/panduan.php', 'icon' => '📘', 'label' => 'Buku Panduan', 'key' => 'panduan'],
     ],
@@ -85,6 +90,7 @@ $menus = [
     ],
     5 => [
         ['url' => '/sim/index.php', 'icon' => '📊', 'label' => 'Dashboard', 'key' => 'dashboard'],
+        ['url' => '/sim/prodi/mock-audit.php', 'icon' => '🎯', 'label' => 'Simulasi Akreditasi', 'key' => 'mockaudit'],
         ['url' => '/sim/instrumen/view.php', 'icon' => '🧾', 'label' => 'Instrumen AMI', 'key' => 'instrumen'],
         ['url' => '/sim/panduan.php', 'icon' => '📘', 'label' => 'Buku Panduan', 'key' => 'panduan'],
     ],
@@ -95,13 +101,13 @@ $currentRoleMenus = $menus[Auth::role()] ?? [];
 // PERUBAHAN: Menambahkan 'akreditasi' ke grup Akreditasi, dan 'standar' ke grup AMI & RTM
 $menuGroups = (Auth::role() == 1) ? [
     ['icon' => '👥', 'label' => 'SDM & Pengguna',  'keys' => ['users', 'gpm', 'komp', 'dosenman', 'import']],
-    ['icon' => '🏆', 'label' => 'Akreditasi',      'keys' => ['prodi', 'akreditasi', 'akrintl', 'monmatriks', 'konflik']],
+    ['icon' => '🏆', 'label' => 'Akreditasi & Risiko', 'keys' => ['prodi', 'akreditasi', 'akrintl', 'monmatriks', 'konflik', 'risk', 'mockaudit']],
     ['icon' => '🔄', 'label' => 'AMI & RTM',       'keys' => ['standar', 'jadwal', 'instrumen', 'rtmtl']],
     ['icon' => '📊', 'label' => 'Monev & IKU',     'keys' => ['iku', 'kuesioner', 'tracer', 'responden', 'surveipg']],
     ['icon' => '📁', 'label' => 'Dokumen Mutu',    'keys' => ['dokumen', 'kendok']],
     ['icon' => '📣', 'label' => 'Konten Publik',   'keys' => ['berita', 'pengaduan', 'profil', 'slider', 'mitra', 'milestone']],
     ['icon' => '📈', 'label' => 'Laporan',         'keys' => ['laporan', 'puslap']],
-    ['icon' => '⚙️', 'label' => 'Sistem',          'keys' => ['logs', 'tenggat', 'email', 'panduan']],
+    ['icon' => '⚙️', 'label' => 'Sistem',          'keys' => ['logs', 'integrasi', 'tenggat', 'email', 'panduan']],
 ] : null;
 
 $byKey = [];
@@ -142,6 +148,7 @@ function sidebarIcon(string $icon): string
         '✉️' => 'mail',
         '📘' => 'book',
         '⚠️' => 'alert',
+        '🎯' => 'target',
         '🤖' => 'bot',
         '📝' => 'pen',
         '☁️' => 'cloud',
@@ -151,6 +158,7 @@ function sidebarIcon(string $icon): string
         '🤝' => 'handshake',
         '🔍' => 'search',
         '🔄' => 'refresh',
+        '🔗' => 'link',
         '📣' => 'megaphone',
         '⚙️' => 'gear',
         '🚪' => 'door',
@@ -187,6 +195,7 @@ function sidebarIcon(string $icon): string
         'clock' => '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
         'book' => '<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4V4Z"/><path d="M4 16a4 4 0 0 1 4-4h12M8 4v8"/>',
         'alert' => '<path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4m0 4h.01"/>',
+        'target' => '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
         'bot' => '<rect x="4" y="7" width="16" height="13" rx="3"/><path d="M12 3v4m-5 5h.01M17 12h.01M8 16h8"/>',
         'pen' => '<path d="m12 20 9-9-4-4-9 9-1 5 5-1Z"/><path d="m15 8 4 4M4 20h4"/>',
         'cloud' => '<path d="M20 16.2A4.5 4.5 0 0 0 18 7.5a6 6 0 0 0-11.5 1A4 4 0 0 0 7 16h13Z"/>',
@@ -195,6 +204,7 @@ function sidebarIcon(string $icon): string
         'handshake' => '<path d="m8 12 3 3a2 2 0 0 0 3-1l1-1m-7-5 3-2 4 2 3-1 4 4-5 5a2 2 0 0 1-3 0l-1 1a2 2 0 0 1-3 0l-1-1a2 2 0 0 1-3 0l-4-4 4-5 5-2"/>',
         'search' => '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
         'refresh' => '<path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9A7 7 0 0 1 18 6l2 6M4 12l2 6a7 7 0 0 0 12.4-3"/>',
+        'link' => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
         'megaphone' => '<path d="m3 11 18-5v12L3 13v-2Z"/><path d="m7 14 2 7h4l-2-6m10-7v10"/>',
         'gear' => '<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z"/>',
         'door' => '<path d="M4 21h16M6 21V3h12v18m-5-9h.01"/>',
