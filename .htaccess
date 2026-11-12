@@ -29,14 +29,12 @@ ServerSignature Off
 </IfModule>
 
 # 5. Blokir Eksekusi PHP di Folder Uploads
-<FilesMatch "^uploads/.*\.(php|phtml|php3|php4|php5|php7|php8|pl|py|jsp|asp|sh|cgi)$">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order allow,deny
-        Deny from all
-    </IfModule>
+# 5. Blokir Eksekusi PHP di Folder Uploads (REWRITE — berfungsi sungguhan)
+<IfModule mod_rewrite.c>
+    RewriteRule ^uploads/.*\.(php|phtml|php3|php4|php5|php7|php8|phar|pl|py|jsp|asp|sh|cgi)$ - [F,L,NC]
+    # Blokir dotfiles (.env, .git, dll) kecuali .well-known
+    RewriteRule (^|/)\.(?!well-known) - [F,L]
+</IfModule>
 </FilesMatch>
 
 # 6. Security Headers (DIPERBAIKI)

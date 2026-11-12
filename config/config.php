@@ -1,29 +1,39 @@
 <?php
 declare(strict_types=1);
 
-// 1. Muat Autoloader Composer (untuk vlucas/phpdotenv)
 $rootDir = dirname(__DIR__);
+
+// 1. Muat .env — via Composer jika ada, fallback parser mandiri jika tidak
 if (file_exists($rootDir . '/vendor/autoload.php')) {
     require_once $rootDir . '/vendor/autoload.php';
-    
-    // Muat file .env secara aman
     if (file_exists($rootDir . '/.env')) {
         try {
-            $dotenv = Dotenv\Dotenv::createImmutable($rootDir);
-            $dotenv->safeLoad();
-        } catch (Exception $e) {
+            Dotenv\Dotenv::createImmutable($rootDir)->safeLoad();
+        } catch (Throwable $e) {
             error_log('Gagal memuat .env: ' . $e->getMessage());
+        }
+    }
+} elseif (file_exists($rootDir . '/.env')) {
+    // Fallback tanpa Composer (shared hosting)
+    foreach (file($rootDir . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#' || !str_contains($line, '=')) continue;
+        [$k, $v] = explode('=', $line, 2);
+        $k = trim($k); $v = trim($v);
+        if ($v !== '' && ($v[0] === '"' || $v[0] === "'") && substr($v, -1) === $v[0]) {
+            $v = substr($v, 1, -1);
+        }
+        if ($k !== '' && !array_key_exists($k, $_ENV)) {
+            $_ENV[$k] = $v; $_SERVER[$k] = $v; putenv("$k=$v");
         }
     }
 }
 
-// 2. Helper function untuk mengambil nilai ENV
+// 2. Helper ENV
 if (!function_exists('env')) {
     function env(string $key, $default = null) {
         $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
-        if ($value === false) {
-            return $default;
-        }
+        if ($value === false) return $default;
         if (is_string($value)) {
             if (strtolower($value) === 'true') return true;
             if (strtolower($value) === 'false') return false;
@@ -43,55 +53,36 @@ define('DB_NAME', (string)env('DB_DATABASE', 'db_lpm_kampus'));
 define('DB_USER', (string)env('DB_USERNAME', 'root'));
 define('DB_PASS', (string)env('DB_PASSWORD', ''));
 
-// Direktori upload
 define('PATH_UPLOAD', rtrim(dirname(__DIR__), '/\\') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR);
-define('MAX_UPLOAD_SIZE', 10 * 1024 * 1024); // 10 MB
-define('ALLOWED_EXTENSIONS', ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'webp', 'ico', 'svg']);
+define('MAX_UPLOAD_SIZE', 10 * 1024 * 1024);
+define('ALLOWED_EXTENSIONS', ['pdf','doc','docx','xls','xlsx','ppt','pptx','jpg','jpeg','png','webp','ico','svg']);
 
 // ==================== SESSION AMAN ====================
 if (session_status() === PHP_SESSION_NONE) {
-    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
-                || $_SERVER['SERVER_PORT'] == 443
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (($_SERVER['SERVER_PORT'] ?? 0) == 443)
                 || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-    
+
     session_set_cookie_params([
-        'lifetime' => 0,
-        'path'     => '/',
-        'domain'   => '',
-        'secure'   => $isSecure,
-        'httponly' => true,
-        'samesite' => 'Lax'
+        'lifetime' => 0, 'path' => '/', 'domain' => '',
+        'secure' => $isSecure, 'httponly' => true, 'samesite' => 'Lax'
     ]);
-    
     session_name('LPM_SID');
     session_start();
 }
 
-// Regenerasi session berkala (anti session fixation)
 if (!isset($_SESSION['_created'])) {
     $_SESSION['_created'] = time();
-} elseif (time() - $_SESSION['_created'] > 1800) { // 30 menit
+} elseif (time() - $_SESSION['_created'] > 1800) {
     session_regenerate_id(true);
     $_SESSION['_created'] = time();
 }
 
-// ==================== AUTOLOAD CLASS (DIPERBAIKI TOTAL) ====================
-spl_autoload_register(function (string $class): void {
-    // PERBAIKAN: Gunakan dirname(__DIR__) secara langsung di dalam closure 
-    // agar tidak terjadi error "Undefined variable"
-    $coreDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'core';
-    $file = $coreDir . DIRECTORY_SEPARATOR . $class . '.php';
-    
-    if (file_exists($file)) {
-        require_once $file;
-        return;
-    }
-    
-    // Fallback ke folder includes jika diperlukan
-    $incDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'includes';
-    $fileInc = $incDir . DIRECTORY_SEPARATOR . $class . '.php';
-    if (file_exists($fileInc)) {
-        require_once $fileInc;
+// ==================== AUTOLOAD (core + core/adapters + includes) ====================
+spl_autoload_register(function (string $class) use ($rootDir): void {
+    foreach (['core', 'core/adapters', 'includes'] as $dir) {
+        $file = $rootDir . DIRECTORY_SEPARATOR . $dir . DIRECTORY_SEPARATOR . $class . '.php';
+        if (file_exists($file)) { require_once $file; return; }
     }
 });
 
@@ -100,30 +91,23 @@ if (APP_ENV === 'production') {
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
     ini_set('display_errors', '0');
     ini_set('log_errors', '1');
-    $logPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'php_errors.log';
-    ini_set('error_log', $logPath);
+    ini_set('error_log', $rootDir . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'php_errors.log');
 } else {
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 }
-
 date_default_timezone_set('Asia/Jakarta');
 
-/* =====================================================
-   2FA PENDING GATE (FASE 4)
-   Selama sesi berstatus require_2fa, SEMUA halaman diblokir
-   kecuali halaman verifikasi dan logout.
-   ===================================================== */
+// ==================== 2FA PENDING GATE (anti-loop, subfolder-safe) ====================
 if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['require_2fa'])) {
-    // Token pending kadaluarsa -> paksa keluar
     if (isset($_SESSION['require_2fa_expires']) && $_SESSION['require_2fa_expires'] < time()) {
         $_SESSION = [];
-        if (session_status() === PHP_SESSION_ACTIVE) session_regenerate_id(true);
+        session_regenerate_id(true);
         if (!headers_sent()) { header('Location: /login.php?expired=1'); exit; }
     } else {
-        $self = $_SERVER['PHP_SELF'] ?? '';
-        $whitelist = ['/2fa-verify.php', '/logout.php'];
-        if (!in_array($self, $whitelist, true) && !headers_sent()) {
+        // basename + SCRIPT_NAME: tahan subfolder & PATH_INFO
+        $self = basename($_SERVER['SCRIPT_NAME'] ?? '');
+        if (!in_array($self, ['2fa-verify.php', 'logout.php'], true) && !headers_sent()) {
             header('Location: /2fa-verify.php');
             exit;
         }
