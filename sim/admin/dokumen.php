@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__, 2) . '/config/config.php';
 Auth::requireRole([1]);
+require_once dirname(__DIR__, 2) . '/core/GamificationEngine.php';
 $db = Database::getInstance();
 $pesan = ''; $error = '';
 
@@ -71,6 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            $periode
                        ]);
                     Logger::log('CREATE', 'Mengunggah dokumen mutu: ' . $judul . ($kode !== '' ? " ($kode)" : ''));
+                    // 🎮 Gamifikasi: +10 poin upload dokumen
+                    GamificationEngine::addPoints((int)Auth::id(), 'UPLOAD_DOKUMEN', 'Upload dokumen: ' . $judul, 'dokumen_mutu', (int)$db->lastInsertId());
                     $pesan = '✅ Dokumen berhasil diunggah. Review berikutnya: ' . date('d M Y', strtotime($review)) . '.';
                 } catch (PDOException $e) {
                     unlinkDokumen($up['path']); // bersihkan file yatim bila insert gagal
@@ -101,6 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $db->prepare("UPDATE dokumen_mutu SET file_path = ?, versi = versi + 1, uploaded_at = NOW(), review_berikutnya = ? WHERE id_dokumen = ?")
                            ->execute([$up['path'], $newReview, $id]);
                         Logger::log('UPDATE', 'Mengunggah versi baru dokumen #' . $id . ' (' . $old['judul_dokumen'] . ') ke v' . ((int)$old['versi'] + 1));
+                        // 🎮 Gamifikasi: +10 poin versi baru
+                        GamificationEngine::addPoints((int)Auth::id(), 'UPLOAD_DOKUMEN', 'Versi baru dokumen #' . $id, 'dokumen_mutu', $id);
                         $pesan = '✅ Versi baru tersimpan (v' . ((int)$old['versi'] + 1) . '). Tanggal review diperbarui otomatis.';
                     }
                 }

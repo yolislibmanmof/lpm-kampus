@@ -5,14 +5,14 @@ require_once __DIR__ . '/lang-autotranslate.php';
 lpm_autotranslate_start();
 Security::sendHeaders();
 
-$currentPage = basename($_SERVER['PHP_SELF']);
+$currentPage = basename($_SERVER['SCRIPT_NAME'] ?? '');
 $brandUtama = Site::setting('brand_utama', 'LPM');
 $brandAksen = Site::setting('brand_aksen', 'Kampus');
 $favPath = Site::setting('favicon_path');
 if ($favPath && file_exists(PATH_UPLOAD . $favPath)) {
     $favHref = '/uploads/' . $favPath;
 } else {
-    $initial = mb_substr($brandUtama, 0, 1);
+    $initial = htmlspecialchars(mb_substr($brandUtama, 0, 1), ENT_QUOTES, 'UTF-8');
     $svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%230F3D5C'/><stop offset='100%' stop-color='%23C9A227'/></linearGradient></defs><rect width='64' height='64' rx='14' fill='url(%23g)'/><text x='32' y='44' font-family='Arial Black' font-size='34' font-weight='900' text-anchor='middle' fill='white'>$initial</text></svg>";
     $favHref = 'data:image/svg+xml;utf8,' . $svg;
 }
@@ -41,8 +41,8 @@ $currentLang = lang();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Lembaga Penjaminan Mutu — Sistem Informasi Penjaminan Mutu Kampus">
     <title><?= $pageTitle ?? t('home', 'Beranda') ?> | <?= Security::e($brandUtama) ?> <?= Security::e($brandAksen) ?></title>
-    <link rel="icon" type="image/x-icon" href="<?= $favHref ?>">
-    <link rel="shortcut icon" href="<?= $favHref ?>">
+    <link rel="icon" type="image/x-icon" href="<?= Security::e($favHref) ?>">
+    <link rel="shortcut icon" href="<?= Security::e($favHref) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -52,7 +52,7 @@ $currentLang = lang();
     <link rel="stylesheet" href="/assets/css/style.css">
     <!-- ===== PWA META TAGS ===== -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#C9A227">
+    <meta name="theme-color" content="#0F3D5C">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SIM-Mutu">
@@ -338,9 +338,15 @@ body.dark .dark-mode-toggle {
 <body>
 <!-- CEK DARK MODE SEGERA UNTUK MENCEGAH FLASH PUTIH -->
 <script>
-    if (localStorage.getItem('lpm-dark-mode') === 'true') {
-        document.body.classList.add('dark');
-    }
+(function () {
+    try {
+        var v = localStorage.getItem('lpm-dark');
+        if (v === null) v = (localStorage.getItem('lpm-dark-mode') === 'true') ? '1' : '0';
+        if (v === '1') document.body.classList.add('dark', 'ed-dark', 'ms-dark');
+        localStorage.setItem('lpm-dark', v);
+        localStorage.setItem('lpm-dark-mode', v === '1' ? 'true' : 'false');
+    } catch (e) {}
+})();
 </script>
 
 <!-- ===== ANNOUNCEMENT TICKER (Multi-bahasa) ===== -->
@@ -430,122 +436,93 @@ body.dark .dark-mode-toggle {
 
 <script>
 (function () {
-    var h = document.getElementById('hamburger'),
-        d = document.getElementById('mobileDrawer'),
-        o = document.getElementById('drawerOverlay');
-    function toggle(open) {
-        h.classList.toggle('active', open);
-        d.classList.toggle('open', open);
-        o.classList.toggle('show', open);
-    }
-    h.addEventListener('click', function () { toggle(!d.classList.contains('open')); });
-    o.addEventListener('click', function () { toggle(false); });
-    d.querySelectorAll('a').forEach(function (a) {
-        // Jangan tutup drawer saat klik link bahasa (biar user lihat perubahan)
-        if (!a.classList.contains('dw-lang')) {
-            a.addEventListener('click', function () { toggle(false); });
-        }
-    });
+    'use strict';
 
-    /* Dropdown Layanan */
-    var dd = document.getElementById('navDd');
-    if (dd) {
-        dd.querySelector('button').addEventListener('click', function (e) {
-            e.stopPropagation();
-            dd.classList.toggle('open');
-        });
+    /* ===== NAV MOBILE (null-guard: aman walau elemen belum ada) ===== */
+    function initNav() {
+        var h = document.getElementById('hamburger'),
+            d = document.getElementById('mobileDrawer'),
+            o = document.getElementById('drawerOverlay');
+        if (h && d && o) {
+            var toggle = function (open) {
+                h.classList.toggle('active', open);
+                d.classList.toggle('open', open);
+                o.classList.toggle('show', open);
+            };
+            h.addEventListener('click', function () { toggle(!d.classList.contains('open')); });
+            o.addEventListener('click', function () { toggle(false); });
+            d.querySelectorAll('a').forEach(function (a) {
+                if (!a.classList.contains('dw-lang')) a.addEventListener('click', function () { toggle(false); });
+            });
+        }
+        var dd = document.getElementById('navDd');
+        if (dd) {
+            dd.querySelector('button').addEventListener('click', function (e) { e.stopPropagation(); dd.classList.toggle('open'); });
+            document.addEventListener('click', function (e) { if (!dd.contains(e.target)) dd.classList.remove('open'); });
+        }
+        window.addEventListener('scroll', function () {
+            document.body.classList.toggle('hd-scrolled', window.scrollY > 60);
+        }, { passive: true });
+    }
+
+    /* ===== DARK MODE: SATU handler, idempoten, delegasi capture ===== */
+    function lpmApplyDark(dark) {
+        document.body.classList.toggle('dark', dark);
+        document.body.classList.toggle('ed-dark', dark);
+        document.body.classList.toggle('ms-dark', dark);
+        var btn = document.getElementById('darkModeToggle');
+        if (btn) {
+            btn.textContent = dark ? '☀️' : '🌙';
+            btn.title = dark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap';
+        }
+    }
+    function initDark() {
+        if (window.__lpmDarkInit) return;   // guard: hanya boleh sekali
+        window.__lpmDarkInit = true;
+        lpmApplyDark(document.body.classList.contains('dark'));
+        // Capture + stopImmediatePropagation => menang atas handler lama/ganda apa pun
         document.addEventListener('click', function (e) {
-            if (!dd.contains(e.target)) dd.classList.remove('open');
-        });
-    }
-
-    /* Ticker bar collapse saat scroll */
-    window.addEventListener('scroll', function () {
-        document.body.classList.toggle('hd-scrolled', window.scrollY > 60);
-    }, { passive: true });
-
-    /* ===== DARK MODE TOGGLE ===== */
-    function initDarkMode() {
-        var darkBtn = document.getElementById('darkModeToggle');
-        if (!darkBtn) {
-            console.warn('Dark mode button not found');
-            return;
-        }
-
-        // Set initial state
-        var isDark = localStorage.getItem('lpm-dark-mode') === 'true';
-        darkBtn.textContent = isDark ? '☀️' : '🌙';
-        darkBtn.title = isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap';
-
-        // Remove existing listeners (prevent duplicates)
-        var newBtn = darkBtn.cloneNode(true);
-        darkBtn.parentNode.replaceChild(newBtn, darkBtn);
-        darkBtn = newBtn;
-
-        // Add click handler
-        darkBtn.addEventListener('click', function (e) {
+            var btn = e.target && e.target.closest ? e.target.closest('#darkModeToggle') : null;
+            if (!btn) return;
             e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('Dark mode toggle clicked');
-            
-            var body = document.body;
-            var isNowDark = body.classList.toggle('dark');
-            localStorage.setItem('lpm-dark-mode', isNowDark ? 'true' : 'false');
-            
-            // Update button
-            darkBtn.textContent = isNowDark ? '☀️' : '🌙';
-            darkBtn.title = isNowDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap';
-            
-            // Sync dengan halaman publik lain (EDOM, Mahasiswa, dll)
-            if (isNowDark) {
-                body.classList.add('ed-dark', 'ms-dark');
-            } else {
-                body.classList.remove('ed-dark', 'ms-dark');
+            e.stopImmediatePropagation();
+            var dark = !document.body.classList.contains('dark');
+            lpmApplyDark(dark);
+            try {
+                localStorage.setItem('lpm-dark', dark ? '1' : '0');
+                localStorage.setItem('lpm-dark-mode', dark ? 'true' : 'false');
+            } catch (err) {}
+        }, true);
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'lpm-dark' || e.key === 'lpm-dark-mode') {
+                lpmApplyDark(e.key === 'lpm-dark' ? e.newValue === '1' : e.newValue === 'true');
             }
-            
-            console.log('Dark mode:', isNowDark ? 'ON' : 'OFF');
         });
-
-        console.log('Dark mode initialized, button found');
     }
 
-    // Initialize on DOM ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initDarkMode);
-    } else {
-        initDarkMode();
-    }
+    function boot() { initNav(); initDark(); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
 })();
 
 /* ===== PWA: SERVICE WORKER + INSTALL PROMPT ===== */
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/sw.js')
-            .then(function (reg) { console.log('SW registered:', reg.scope); })
-            .catch(function (err) { console.log('SW failed:', err); });
-    });
+    window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
 }
-
 var deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();
-    deferredPrompt = e;
-    // Tampilkan tombol install di footer (opsional)
-    var installBtn = document.getElementById('pwaInstallBtn');
-    if (installBtn) installBtn.style.display = 'inline-flex';
-});
-
+function pwaShowInstallBtn() {
+    var b = document.getElementById('pwaInstallBtn');
+    if (b) { b.style.display = 'inline-flex'; return; }
+    b = document.createElement('button');
+    b.id = 'pwaInstallBtn'; b.type = 'button'; b.innerHTML = '📲 Install Aplikasi';
+    b.addEventListener('click', window.installPWA);
+    document.body.appendChild(b);
+}
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferredPrompt = e; pwaShowInstallBtn(); });
+window.addEventListener('appinstalled', function () { var b = document.getElementById('pwaInstallBtn'); if (b) b.remove(); deferredPrompt = null; });
 window.installPWA = function () {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(function (choice) {
-        if (choice.outcome === 'accepted') {
-            console.log('PWA installed');
-        }
-        deferredPrompt = null;
-        var installBtn = document.getElementById('pwaInstallBtn');
-        if (installBtn) installBtn.style.display = 'none';
-    });
+    deferredPrompt.userChoice.then(function () { deferredPrompt = null; var b = document.getElementById('pwaInstallBtn'); if (b) b.remove(); });
 };
 </script>

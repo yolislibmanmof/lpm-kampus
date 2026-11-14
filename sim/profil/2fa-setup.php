@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__, 2) . '/config/config.php';
 if (!Auth::check()) {
-    header('Location: ' . BASE_URL . '/sim/login.php');
+    header('Location: /login.php');
     exit;
 }
 require_once dirname(__DIR__, 2) . '/core/TotpAuth.php';
@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $secret = $_POST['secret'] ?? '';
         if (TotpAuth::verifyCode($secret, $code)) {
             if (TotpAuth::enable2fa($user['id'], $secret)) {
-                // Generate recovery codes
                 $codes = TotpAuth::generateRecoveryCodes(10);
                 $db->beginTransaction();
                 $db->prepare("DELETE FROM totp_recovery_codes WHERE id_user = ?")->execute([$user['id']]);
@@ -32,32 +31,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $db->commit();
                 Logger::log('SECURITY', '2FA enabled for user #' . $user['id']);
-                
                 $_SESSION['recovery_codes_new'] = $codes;
                 $pesan = '✅ 2FA berhasil diaktifkan!';
-                header('Location: ' . $_SERVER['PHP_SELF'] . '?show_recovery=1');
+                header('Location: ' . $_SERVER['SCRIPT_NAME'] . '?show_recovery=1');
                 exit;
             }
         } else {
             $pesan = '❌ Kode verifikasi tidak valid. Coba lagi.';
         }
     } elseif ($action === 'disable') {
-        if (TotpAuth::disable2fa($user['id'])) {
+        $pwd = $_POST['password'] ?? '';
+        $st = $db->prepare("SELECT password_hash FROM users WHERE id_user = ?");
+        $st->execute([$user['id']]);
+        $hash = $st->fetchColumn();
+        if (!$hash || !password_verify($pwd, $hash)) {
+            $pesan = '❌ Password salah. 2FA tidak dinonaktifkan.';
+        } elseif (TotpAuth::disable2fa($user['id'])) {
             Logger::log('SECURITY', '2FA disabled for user #' . $user['id']);
             $pesan = '✅ 2FA telah dinonaktifkan.';
         }
     } elseif ($action === 'regenerate_recovery') {
-        $codes = TotpAuth::generateRecoveryCodes(10);
-        $db->beginTransaction();
-        $db->prepare("DELETE FROM totp_recovery_codes WHERE id_user = ?")->execute([$user['id']]);
-        $ins = $db->prepare("INSERT INTO totp_recovery_codes (id_user, code_hash) VALUES (?, ?)");
-        foreach ($codes as $c) {
-            $ins->execute([$user['id'], TotpAuth::hashRecoveryCode($c)]);
+        $pwd = $_POST['password'] ?? '';
+        $st = $db->prepare("SELECT password_hash FROM users WHERE id_user = ?");
+        $st->execute([$user['id']]);
+        $hash = $st->fetchColumn();
+        if (!$hash || !password_verify($pwd, $hash)) {
+            $pesan = '❌ Password salah. Recovery codes tidak dibuat ulang.';
+        } else {
+            $codes = TotpAuth::generateRecoveryCodes(10);
+            $db->beginTransaction();
+            $db->prepare("DELETE FROM totp_recovery_codes WHERE id_user = ?")->execute([$user['id']]);
+            $ins = $db->prepare("INSERT INTO totp_recovery_codes (id_user, code_hash) VALUES (?, ?)");
+            foreach ($codes as $c) {
+                $ins->execute([$user['id'], TotpAuth::hashRecoveryCode($c)]);
+            }
+            $db->commit();
+            $_SESSION['recovery_codes_new'] = $codes;
+            header('Location: ' . $_SERVER['SCRIPT_NAME'] . '?show_recovery=1');
+            exit;
         }
-        $db->commit();
-        $_SESSION['recovery_codes_new'] = $codes;
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?show_recovery=1');
-        exit;
     }
 }
 
@@ -93,7 +105,7 @@ require_once dirname(__DIR__, 2) . '/includes/header-sim.php';
 <div class="card" style="border-left:4px solid var(--warning);">
     <h3 style="margin-bottom:8px;">🔑 Kode Recovery Anda</h3>
     <p class="text-muted" style="font-size:13px;margin-bottom:16px;">
-        <strong style="color:var(--danger);">PENTING:</strong> Simpan kode-kode ini di tempat aman. 
+        <strong style="color:var(--danger);">PENTING:</strong> Simpan kode-kode ini di tempat aman.
         Setiap kode hanya bisa dipakai <strong>sekali</strong> untuk login jika Anda kehilangan akses ke authenticator.
     </p>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
@@ -104,12 +116,8 @@ require_once dirname(__DIR__, 2) . '/includes/header-sim.php';
             </div>
         <?php endforeach; ?>
     </div>
-    <button onclick="copyRecovery()" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
-        📋 Salin Semua Kode
-    </button>
-    <button onclick="window.print()" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
-        🖨️ Cetak
-    </button>
+    <button onclick="copyRecovery()" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">📋 Salin Semua Kode</button>
+    <button onclick="window.print()" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">🖨️ Cetak</button>
 </div>
 <script>
 function copyRecovery() {
@@ -127,8 +135,8 @@ function copyRecovery() {
     <h3 style="margin-bottom:16px;">📱 Aktifkan 2FA</h3>
     <div style="display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:start;">
         <div style="text-align:center;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=<?= urlencode($provisioningUri) ?>" 
-                 alt="QR Code" style="border-radius:12px;border:4px solid var(--bg-light);">
+            <!-- QR dibuat LOKAL di browser (secret TOTP tidak dikirim ke pihak ketiga) -->
+            <div id="qrcode" style="display:inline-block;padding:8px;background:#fff;border-radius:12px;border:4px solid var(--bg-light);"></div>
             <p class="text-muted" style="font-size:11px;margin-top:8px;">Scan dengan Google Authenticator / Authy</p>
         </div>
         <div>
@@ -137,7 +145,7 @@ function copyRecovery() {
                 <strong>Langkah 2:</strong> Scan QR code di samping atau masukkan kode berikut secara manual:<br>
                 <code style="background:var(--bg-light);padding:8px 12px;border-radius:6px;font-size:13px;display:inline-block;margin-top:6px;user-select:all;font-weight:700;"><?= Security::e($newSecret) ?></code>
             </p>
-            
+
             <form method="POST">
                 <?= Security::csrfField() ?>
                 <input type="hidden" name="action" value="enable">
@@ -151,6 +159,16 @@ function copyRecovery() {
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+    var uri = <?= json_encode($provisioningUri) ?>;
+    var el = document.getElementById('qrcode');
+    if (el && uri && typeof QRCode !== 'undefined') {
+        new QRCode(el, { text: uri, width: 200, height: 200, colorDark: '#0F3D5C', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    }
+})();
+</script>
 
 <?php else: ?>
 <!-- ===== 2FA AKTIF ===== -->
@@ -169,15 +187,17 @@ function copyRecovery() {
             <div style="font-size:16px;font-weight:700;margin-top:4px;"><?= $user['totp_verified_at'] ? date('d M Y', strtotime($user['totp_verified_at'])) : '—' ?></div>
         </div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <form method="POST" style="display:inline;">
             <?= Security::csrfField() ?>
             <input type="hidden" name="action" value="regenerate_recovery">
+            <input type="password" name="password" placeholder="Password Anda" required autocomplete="current-password" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:13px;margin-right:6px;">
             <button class="btn btn-outline" style="padding:8px 16px;font-size:13px;">🔄 Generate Ulang Recovery Codes</button>
         </form>
         <form method="POST" style="display:inline;" onsubmit="return confirm('Yakin menonaktifkan 2FA? Akun Anda akan kurang aman.');">
             <?= Security::csrfField() ?>
             <input type="hidden" name="action" value="disable">
+            <input type="password" name="password" placeholder="Password Anda" required autocomplete="current-password" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:13px;margin-right:6px;">
             <button class="btn btn-outline" style="padding:8px 16px;font-size:13px;color:var(--danger);border-color:var(--danger);">🚫 Nonaktifkan 2FA</button>
         </form>
     </div>

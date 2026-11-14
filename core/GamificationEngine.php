@@ -27,8 +27,9 @@ final class GamificationEngine
 
     /**
      * Tambahkan poin ke user. Otomatis cek dan unlock badge baru.
+     * $oncePerDay = true -> hanya diberi poin sekali per hari (mis. LOGIN), anti-farming.
      */
-    public static function addPoints(int $idUser, string $aksi, ?string $keterangan = null, ?string $refTable = null, ?int $refId = null): array
+    public static function addPoints(int $idUser, string $aksi, ?string $keterangan = null, ?string $refTable = null, ?int $refId = null, bool $oncePerDay = false): array
     {
         if (!isset(self::AKSI[$aksi])) {
             return ['success' => false, 'message' => 'Unknown action code'];
@@ -40,6 +41,16 @@ final class GamificationEngine
         try {
             $db = self::db();
             $db->beginTransaction();
+
+            // Guard harian (anti-farming): lewati bila aksi ini sudah diberi poin hari ini
+            if ($oncePerDay) {
+                $chk = $db->prepare("SELECT COUNT(*) FROM gamification_points WHERE id_user = ? AND aksi = ? AND DATE(created_at) = CURDATE()");
+                $chk->execute([$idUser, $aksi]);
+                if ((int)$chk->fetchColumn() > 0) {
+                    $db->rollBack();
+                    return ['success' => true, 'poin_added' => 0, 'new_badges' => [], 'skipped' => 'already_today'];
+                }
+            }
 
             // 1. Insert poin
             $db->prepare("INSERT INTO gamification_points (id_user, aksi, poin, keterangan, ref_table, ref_id)
@@ -73,6 +84,14 @@ final class GamificationEngine
 
             if (!empty($newBadges)) {
                 Logger::log('GAMIFICATION', "User $idUser unlocked " . count($newBadges) . " badge(s)");
+                // Simpan sementara utk toast perayaan di footer (dibatasi 5 agar tidak menumpuk)
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    $pending = $_SESSION['_gamif_badges'] ?? [];
+                    foreach ($newBadges as $nb) {
+                        $pending[] = ['nama' => $nb['nama'], 'icon' => $nb['icon'], 'deskripsi' => $nb['deskripsi']];
+                    }
+                    $_SESSION['_gamif_badges'] = array_slice($pending, -5);
+                }
             }
 
             return [
@@ -82,7 +101,7 @@ final class GamificationEngine
                 'new_badges' => $newBadges
             ];
         } catch (Throwable $e) {
-            if ($db->inTransaction()) $db->rollBack();
+            if (isset($db) && $db->inTransaction()) $db->rollBack();
             error_log('GamificationEngine::addPoints: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Database error'];
         }
@@ -95,7 +114,7 @@ final class GamificationEngine
     {
         try {
             $db = self::db();
-            
+
             $q = $db->prepare("SELECT COALESCE(SUM(poin), 0) FROM gamification_points WHERE id_user = ?");
             $q->execute([$idUser]);
             $totalPoin = (int)$q->fetchColumn();
@@ -114,7 +133,8 @@ final class GamificationEngine
             $q->execute([$idUser]);
             $breakdown = $q->fetchAll();
 
-            $q = $db->prepare("SELECT COUNT(*) FROM gamification_points 
+            // POIN (bukan jumlah aksi) 30 hari terakhir
+            $q = $db->prepare("SELECT COALESCE(SUM(poin), 0) FROM gamification_points 
                               WHERE id_user = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
             $q->execute([$idUser]);
             $poinBulanIni = (int)$q->fetchColumn();
@@ -155,6 +175,7 @@ final class GamificationEngine
     {
         try {
             $db = self::db();
+            $limit = max(1, min(100, $limit));
             $q = $db->prepare("SELECT u.id_user, u.nama_lengkap, u.id_role, 
                                       COALESCE(SUM(p.poin), 0) AS total_poin,
                                       COUNT(DISTINCT ub.id_badge) AS total_badges
@@ -163,8 +184,8 @@ final class GamificationEngine
                               LEFT JOIN gamification_user_badges ub ON u.id_user = ub.id_user
                               GROUP BY u.id_user
                               ORDER BY total_poin DESC, total_badges DESC
-                              LIMIT ?");
-            $q->execute([$limit]);
+                              LIMIT " . $limit);
+            $q->execute();
             return $q->fetchAll();
         } catch (Throwable $e) {
             return [];

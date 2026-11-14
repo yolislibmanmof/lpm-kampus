@@ -143,11 +143,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $db->prepare("SELECT nama_lengkap FROM users WHERE id_user = ?");
                 $stmt->execute([$id]);
                 $nama = $stmt->fetchColumn() ?: 'Unknown';
-                $db->prepare("DELETE FROM users WHERE id_user = ?")->execute([$id]);
-                Logger::log('DELETE', 'Menghapus pengguna: ' . $nama);
-                $pesan = '✅ Pengguna berhasil dihapus.';
+                $db->prepare("UPDATE users SET is_active = 0 WHERE id_user = ?")->execute([$id]);
+                Logger::log('DELETE', 'Menonaktifkan pengguna: ' . $nama);
+                $pesan = '✅ Pengguna berhasil dinonaktifkan (soft-delete). Data & riwayat tetap tersimpan.';
             } catch (PDOException $e) { 
-                $error = '❌ Gagal menghapus: ' . $e->getMessage(); 
+                $error = '❌ Gagal menonaktifkan: ' . $e->getMessage(); 
             }
         }
     }
@@ -197,7 +197,11 @@ require_once dirname(__DIR__, 2) . '/includes/header-sim.php';
 <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
         <h3 style="margin:0;">👥 Daftar Pengguna (<?= count($users) ?>)</h3>
-        <input type="text" id="cariUser" class="form-control" placeholder="🔍 Cari nama/email..." style="max-width:240px;" autocomplete="off">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <a href="/sim/admin/export.php?data=users&format=csv" class="btn btn-outline" style="padding:8px 14px;font-size:12px;" data-no-transition>📤 CSV</a>
+            <a href="/sim/admin/export.php?data=users&format=xlsx" class="btn btn-gold" style="padding:8px 14px;font-size:12px;" data-no-transition>📊 Excel</a>
+            <input type="text" id="cariUser" class="form-control" placeholder="🔍 Cari nama/email..." style="max-width:240px;" autocomplete="off">
+        </div>
     </div>
     <div class="table-wrapper">
         <table id="tabelUsers">
@@ -253,7 +257,7 @@ require_once dirname(__DIR__, 2) . '/includes/header-sim.php';
                                 <button type="submit" class="btn btn-outline" style="padding:5px 10px;font-size:11px;" title="Reset Password">🔑</button>
                             </form>
                             
-                            <form method="POST" style="display:inline;" onsubmit="return confirm('Hapus pengguna ini?');">
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('Nonaktifkan pengguna ini? Data & riwayat tetap tersimpan.');">
                                 <input type="hidden" name="id_user" value="<?= (int)$u['id_user'] ?>">
                                 <?= Security::csrfField() ?>
                                 <input type="hidden" name="action" value="delete">

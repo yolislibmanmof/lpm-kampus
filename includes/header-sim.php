@@ -27,7 +27,7 @@ $favPath = Site::setting('favicon_path');
 if ($favPath && file_exists(PATH_UPLOAD . $favPath)) {
     $favHref = '/uploads/' . $favPath;
 } else {
-    $initial = mb_substr(Site::setting('brand_utama', 'LPM'), 0, 1);
+    $initial = htmlspecialchars(mb_substr(Site::setting('brand_utama', 'LPM'), 0, 1), ENT_QUOTES, 'UTF-8');
     $svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%230F3D5C'/><stop offset='100%' stop-color='%23C9A227'/></linearGradient></defs><rect width='64' height='64' rx='14' fill='url(%23g)'/><text x='32' y='44' font-family='Arial Black' font-size='34' font-weight='900' text-anchor='middle' fill='white'>$initial</text></svg>";
     $favHref = 'data:image/svg+xml;utf8,' . $svg;
 }
@@ -46,12 +46,15 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= Security::e($simTitle) ?> | SIM-Mutu v4.0</title>
-    <link rel="icon" type="image/x-icon" href="<?= $favHref ?>">
-    <link rel="shortcut icon" href="<?= $favHref ?>">
+    <link rel="icon" type="image/x-icon" href="<?= Security::e($favHref) ?>">
+    <link rel="shortcut icon" href="<?= Security::e($favHref) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0F3D5C">
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         .sim-content { background-image: radial-gradient(rgba(15,61,92,.05) 1px, transparent 1px); background-size: 22px 22px; }
@@ -249,7 +252,17 @@ body.dark .alert-danger {
     </style>
 </head>
 <body>
-<script>if (localStorage.getItem('lpm-dark') === '1') document.body.classList.add('dark');</script>
+<script>
+(function () {
+    try {
+        var v = localStorage.getItem('lpm-dark');
+        if (v === null) v = (localStorage.getItem('lpm-dark-mode') === 'true') ? '1' : '0';
+        if (v === '1') document.body.classList.add('dark');
+        localStorage.setItem('lpm-dark', v);
+        localStorage.setItem('lpm-dark-mode', v === '1' ? 'true' : 'false');
+    } catch (e) {}
+})();
+</script>
 <div class="sim-layout">
     <?php require_once __DIR__ . '/sidebar-sim.php'; ?>
 
@@ -328,7 +341,7 @@ body.dark .alert-danger {
                             <?php else: ?>
                                 <?php foreach ($notifList as $n): ?>
                                 <a class="nt-item <?= $n['is_read'] ? '' : 'unread' ?>" href="/sim/notif.php?action=read&id=<?= $n['id_notif'] ?>&goto=<?= urlencode($n['url']) ?>" data-id="<?= $n['id_notif'] ?>">
-                                    <span class="nt-ic"><?= $n['icon'] ?></span>
+                                    <span class="nt-ic"><?= Security::e($n['icon']) ?></span>
                                     <span class="nt-txt">
                                         <strong><?= Security::e($n['judul']) ?></strong>
                                         <small><?= Security::e(mb_strimwidth($n['isi'], 0, 60, '...')) ?></small>
@@ -344,231 +357,8 @@ body.dark .alert-danger {
 
                 <span class="sb-rolebadge"><?= Security::e(getRoleName(Auth::role())) ?></span>
                 <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--accent));display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:var(--shadow-md);">
-                    <?= strtoupper(substr(Auth::user()['nama'], 0, 1)) ?>
+                <?= Security::e(strtoupper(mb_substr(Auth::user()['nama'], 0, 1))) ?>
                 </div>
             </div>
         </div>
 
-<!-- ===== SCRIPT FITUR UTAMA ===== -->
-<script>
-(function() {
-    'use strict';
-
-    // === CLOCK ===
-    function updateClock() {
-        const now = new Date();
-        const el = document.getElementById('sbClock');
-        if (el) el.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
-
-    // === SIDEBAR COLLAPSE ===
-    const sbCollapseBtn = document.getElementById('sbCollapse');
-    if (sbCollapseBtn) {
-        if (localStorage.getItem('lpm-sidebar-collapsed') === '1') document.body.classList.add('sim-collapsed');
-        sbCollapseBtn.addEventListener('click', function() {
-            document.body.classList.toggle('sim-collapsed');
-            localStorage.setItem('lpm-sidebar-collapsed', document.body.classList.contains('sim-collapsed') ? '1' : '0');
-        });
-    }
-
-    // === DARK MODE TOGGLE (DIPERBAIKI) ===
-    const dmToggle = document.getElementById('dmToggle');
-    if (dmToggle) {
-        dmToggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
-        dmToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.body.classList.toggle('dark');
-            const isDark = document.body.classList.contains('dark');
-            localStorage.setItem('lpm-dark', isDark ? '1' : '0');
-            dmToggle.textContent = isDark ? '☀️' : '🌙';
-        });
-    }
-
-    // === COMMAND PALETTE ===
-    const cmdk = document.getElementById('cmdk');
-    const cmdkInput = document.getElementById('cmdkInput');
-    const cmdkList = document.getElementById('cmdkList');
-    const cmdkBtn = document.getElementById('cmdkBtn');
-
-    function openCmdk() {
-        if (cmdk) {
-            cmdk.classList.add('open');
-            if (cmdkInput) { cmdkInput.value = ''; cmdkInput.focus(); }
-            renderCmdkList('');
-        }
-    }
-    function closeCmdk() { if (cmdk) cmdk.classList.remove('open'); }
-
-    function renderCmdkList(query) {
-        if (!cmdkList) return;
-        const q = query.toLowerCase();
-        const items = (window.CMD_ITEMS || []).filter(m => m.label.toLowerCase().includes(q));
-        cmdkList.innerHTML = items.map((m, i) =>
-            `<a class="cmdk-item ${i === 0 ? 'sel' : ''}" data-url="${m.url || ''}" data-action="${m.action || ''}">
-                <span>${m.icon}</span><span>${m.label}</span>
-            </a>`
-        ).join('');
-    }
-
-
- 
- +
- +-+
- 
- if* (cmdkBtn) cmdkBtn.addEventListener('click', function(e) { e.preventDefault(); openCmdk(); });
-    if (cmdk) cmdk.addEventListener('click', function(e) { if (e.target === cmdk) closeCmdk(); });
-    document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); cmdk && cmdk.classList.contains('open') ? closeCmdk() : openCmdk(); }
-        if (e.key === 'Escape') closeCmdk();
-    });
-    if (cmdkInput) {
-        cmdkInput.addEventListener('input', function() { renderCmdkList(this.value); });
-        cmdkInput.addEventListener('keydown', function(e) {
-            const items = cmdkList.querySelectorAll('.cmdk-item');
-            const sel = cmdkList.querySelector('.cmdk-item.sel');
-            let idx = Array.from(items).indexOf(sel);
-            if (e.key === 'ArrowDown') { e.preventDefault(); idx = Math.min(idx + 1, items.length - 1); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); idx = Math.max(idx - 1, 0); }
-            else if (e.key === 'Enter' && sel) { e.preventDefault(); executeCmdkItem(sel); return; }
-            else return;
-            items.forEach(i => i.classList.remove('sel'));
-            if (items[idx]) items[idx].classList.add('sel');
-        });
-    }
-    if (cmdkList) {
-        cmdkList.addEventListener('click', function(e) {
-          + 
-          +
-           const item = e.target.closest('.cmdk-item');
-         +
-          
-         i+
-         -+
-         item) executeCmdkItem(item);+-
--+
--+
---+
-+
-
-+     });
-    }
-    function executeCmdkItem(el) {
-        const url = el.dataset.url;
-        const action = el.dataset.action;
-        closeCmdk();
-        if (action === 'dark' && dmToggle) dmToggle.click();
-        else if (action === 'print') window.print();
-        else if (action === 'logout' && window.LPM_LOGOUT) window.LPM_LOGOUT();
-        else if (url) window.location.href = url;
-    }
-
-    // === NOTIFICATION CENTER ===
-    const ntWrap = document.getElementById('ntWrap');
-    const ntBell = document.getElementById('ntBell');
-    const ntBadge = document.getElementById('ntBadge');
-    const ntListContainer = document.getElementById('ntListContainer');
-    const ntSoundToggle = document.getElementById('ntSoundToggle');
-    const ntMarkAllRead = document.getElementById('ntMarkAllRead');
-
-    const popSound = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==");
-    let currentCount = parseInt(ntBadge ? ntBadge.textContent.replace('+', '') : 0);
-    let isSoundEnabled = localStorage.getItem('lpm_notif_sound') === '1';
-
-    if (ntSoundToggle) {
-        ntSoundToggle.textContent = isSoundEnabled ? '🔊' : '🔇';
-        ntSoundToggle.title = isSoundEna
-        bled ? 'Matikan Suara Not
-        *-
-        i+kasi' : 'Nyalakan Suara Notifikasi';
- 
- +   }
-
-    if (ntBell) {
-        ntBell.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            ntWrap.classList.toggle('open');
-        });
-    }
-
-    document.addEventListener('click', function(e) {
-        if (ntWrap && !ntWrap.contains(e.target)) {
-            ntWrap.classList.remove('open');
-        }
-    });
-
-    if (ntSoundToggle) {
-        ntSoundToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            isSoundEnabled = !isSoundEnabled;
-            localStorage.setItem('lpm_notif_sound', isSoundEnabled ? '1' : '0');
-            ntSoundToggle.textContent = isSoundEnabled ? '🔊' : '🔇';
-            ntSoundToggle.title = isSoundEnabled ? 'Matikan Suara Notifikasi' : 'Nyalakan Suara Notifikasi';
-        });
-    }
-
-    if (ntMarkAllRead) {
-        ntMarkAllRead.addEventListener('click', async function(e) {
-        *-   e.preventDefault();+
-            e.stopPropagation();
-            try {
-                await fetch('/sim/api/mark-all-read.php', { method: 'POST' });
-                currentCount = 0;
-                if (ntBadge) ntBadge.style.display = 'none';
-                if (ntListContainer) ntListContainer.innerHTML = '<div class="nt-empty">🌙 Tidak ada notifikasi.<br>Semua tenang dan terkendali.</div>';
-                if (ntMarkAllRead) ntMarkAllRead.remove();
-            } catch (err) { console.error('Mark all read failed:', err); }
-        });
-    }
-
-    async function fetchNotifications() {
-        try {
-            const response = await fetch('/sim/api/get-notifications.php');
-            const data = await response.json();
-            if (data.success) {
-                if (data.count > currentCount && currentCount > 0 && isSoundEnabled) {
-                    popSound.play().catch(function() {});
-                }
-                currentCount = data.count;
-                if (ntBadge) {
-                    if (currentCount > 0) {
-                        ntBadge.textContent = currentCount > 9 ? '9+' : currentCount;
-                        ntBadge.style.display = 'grid';
-                    } else {
-                        ntBadge.style.display = 'none';
-                    }
-                }
-                if (ntListContainer) {
-                    ntListContainer.i++erHTML = data.html || '<div class="nt-empty">🌙 Tidak ada notifikasi.<br>Semua tenang dan terkendali.</div>';
-                }
-            }
-        } catch (error) { console.error('Notif fetch failed:', error); }
-    }
-
-    document.addEventListener('click', function(e) {
-        const item = e.target.closest('.nt-item[data-id]');
-        if (item && item.classList.contains('unread')) {
-            item.classList.remove('unread');
-            item.style.borderLeft = 'none';
-            try {
-                const formData = new FormData();
-                formData.append('id', item.dataset.id);
-                fetch('/sim/api/mark-as-read.php', { method: 'POST', body: formData });
-                if (currentCount > 0) {
-                    currentCount--;
-                    if (ntBadge) {
-                        ntBadge.textContent = currentCount > 9 ? '9+' : currentCount;
-                        if (currentCount === 0) ntBadge.style.display = 'none';
-                    }
-                }
-            } catch (err) { console.error('Mark read failed:', err); }
-        }
-    });
-
-    fetchNotifications();
-    setInterval(fetchNotifications, 30000);
-})();
-</script>

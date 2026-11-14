@@ -166,14 +166,15 @@ final class HealthScoreEngine
     {
         try {
             $db = self::db();
+            $limit = max(1, min(100, $limit));
             $q = $db->prepare("SELECT h.*, p.nama_prodi, f.nama_fakultas
                               FROM prodi_health_score h
                               JOIN prodi p ON h.id_prodi = p.id_prodi
                               LEFT JOIN fakultas f ON p.id_fakultas = f.id_fakultas
                               WHERE h.tahun = ?
                               ORDER BY h.total_skor DESC, p.nama_prodi ASC
-                              LIMIT ?");
-            $q->execute([$tahun, $limit]);
+                              LIMIT " . $limit);
+            $q->execute([$tahun]);
             return $q->fetchAll();
         } catch (Throwable $e) {
             return [];

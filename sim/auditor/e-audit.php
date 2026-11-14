@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__, 2) . '/config/config.php';
 Auth::requireRole([4]);
+require_once dirname(__DIR__, 2) . '/core/GamificationEngine.php';
 $db = Database::getInstance();
 $auditorId = Auth::id();
 $pesan = ''; $error = '';
@@ -62,6 +63,8 @@ if ($current && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 Notifier::send((int)$kaprodi['id_user'], '🔍 Audit Prodi Selesai', 'Audit Mutu Internal prodi Anda telah selesai. Silakan tinjau temuan dan kirim tindakan koreksi.', '/sim/prodi/riwayat.php', '🔍');
             }
         }
+        // 🎮 Gamifikasi: +30 poin menyelesaikan audit
+        GamificationEngine::addPoints((int)$auditorId, 'COMPLETE_AUDIT', 'Menyelesaikan audit tugas #' . $tugasId, 'penugasan_audit', $tugasId);
         $pesan = '✅ Audit ditandai SELESAI. Lembar kerja terkunci.';
     }
 }

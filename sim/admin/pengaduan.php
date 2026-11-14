@@ -62,13 +62,17 @@ require_once dirname(__DIR__, 2) . '/includes/header-sim.php';
     <div class="stat-card"><div class="stat-icon red">📩</div><div><h3 style="font-size:26px;"><?= $stats['Baru'] ?></h3><p class="text-muted">Pengaduan Baru</p></div></div>
     <div class="stat-card"><div class="stat-icon gold">⏳</div><div><h3 style="font-size:26px;"><?= $stats['Diproses'] ?></h3><p class="text-muted">Sedang Diproses</p></div></div>
     <div class="stat-card"><div class="stat-icon green">✅</div><div><h3 style="font-size:26px;"><?= $stats['Selesai'] ?></h3><p class="text-muted">Telah Selesai</p></div></div>
-    <div class="stat-card"><div class="stat-icon blue"></div><div><h3 style="font-size:26px;"><?= count($pengaduan) ?></h3><p class="text-muted">Total Masuk</p></div></div>
+    <div class="stat-card"><div class="stat-icon blue">📊</div><div><h3 style="font-size:26px;"><?= count($pengaduan) ?></h3><p class="text-muted">Total Masuk</p></div></div>
 </div>
 
 <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
         <h3 style="margin:0;">📋 Daftar Pengaduan Masuk</h3>
-        <input type="text" id="cariPengaduan" class="form-control" placeholder="🔍 Cari nama, email, atau subjek..." style="max-width:300px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <a href="/sim/admin/export.php?data=pengaduan&format=csv" class="btn btn-outline" style="padding:8px 14px;font-size:12px;" data-no-transition>📤 CSV</a>
+            <a href="/sim/admin/export.php?data=pengaduan&format=xlsx" class="btn btn-gold" style="padding:8px 14px;font-size:12px;" data-no-transition>📊 Excel</a>
+            <input type="text" id="cariPengaduan" class="form-control" placeholder="🔍 Cari nama, email, atau subjek..." style="max-width:300px;">
+        </div>
     </div>
     
     <div class="table-wrapper">

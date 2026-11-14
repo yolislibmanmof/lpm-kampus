@@ -14,6 +14,28 @@
 
 <script src="/assets/js/main.js"></script>
 <script>
+/* 🎮 Perayaan badge baru (dikonsumsi dari session, sekali tampil) */
+(function () {
+    var badges = <?= json_encode(array_values($_SESSION['_gamif_badges'] ?? []), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+    <?php unset($_SESSION['_gamif_badges']); ?>
+    if (!badges.length) return;
+    document.addEventListener('DOMContentLoaded', function () {
+        badges.forEach(function (b, i) {
+            setTimeout(function () {
+                if (window.showToast) showToast((b.icon || '🏅') + ' Badge baru: ' + b.nama + ' — ' + (b.deskripsi || ''), 'success');
+                if (window.lpmConfetti) {
+                    var c = document.createElement('div');
+                    c.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;';
+                    document.body.appendChild(c);
+                    window.lpmConfetti(c, 60);
+                    setTimeout(function () { c.remove(); }, 4500);
+                }
+            }, 600 + i * 1200);
+        });
+    });
+})();
+</script>
+<script>
 // ===== CLIPBOARD POLYFILL v4.0 =====
 (function () {
     if (navigator.clipboard && window.isSecureContext) return;
@@ -25,7 +47,12 @@
             ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
             document.body.appendChild(ta);
             var isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent);
-            if (isIOS) { ta.contentEditable = true; ta.readOnly = false; var r = ta.createTextRange(); r.select(); }
+            if (isIOS) {
+                ta.contentEditable = true; ta.readOnly = false;
+                var range = document.createRange(); range.selectNodeContents(ta);
+                var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+                ta.setSelectionRange(0, 999999);
+            }
             else { ta.select(); ta.setSelectionRange(0, 99999); }
             try { document.execCommand('copy'); resolve(); } catch (e) { reject(e); }
             document.body.removeChild(ta);
@@ -85,6 +112,7 @@ window.restyleCharts = function () {
 
 // ===== Collapse sidebar =====
 (function () {
+    if (localStorage.getItem('lpm-sidebar-collapsed') === '1') document.body.classList.add('sim-collapsed');
     var b = document.getElementById('sbCollapse');
     if (b) {
         b.addEventListener('click', function (e) {
@@ -98,11 +126,23 @@ window.restyleCharts = function () {
 // ===== DARK MODE + restyle chart =====
 window.toggleDark = function () {
     document.body.classList.toggle('dark');
-    localStorage.setItem('lpm-dark', document.body.classList.contains('dark') ? '1' : '0');
+    var dark = document.body.classList.contains('dark');
+    try {
+        localStorage.setItem('lpm-dark', dark ? '1' : '0');
+        localStorage.setItem('lpm-dark-mode', dark ? 'true' : 'false');
+    } catch (e) {}
     var b = document.getElementById('dmToggle');
-    if (b) b.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    if (b) b.textContent = dark ? '☀️' : '🌙';
     window.restyleCharts();
 };
+window.addEventListener('storage', function (e) {
+    if (e.key !== 'lpm-dark' && e.key !== 'lpm-dark-mode') return;
+    var dark = e.key === 'lpm-dark' ? e.newValue === '1' : e.newValue === 'true';
+    document.body.classList.toggle('dark', dark);
+    var b = document.getElementById('dmToggle');
+    if (b) b.textContent = dark ? '☀️' : '🌙';
+    window.restyleCharts();
+});
 (function () {
     var b = document.getElementById('dmToggle');
     if (b) {

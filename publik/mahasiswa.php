@@ -23,7 +23,7 @@ if ($nimInput !== '') {
 
             // Fallback 2: tracer_alumni
             if (!$mahasiswa) {
-                $q2 = $db->prepare("SELECT nim, nama_lengkap AS nama_mahasiswa, id_prodi, tahun_lulus AS tahun_masuk FROM tracer_alumni WHERE nim = ?");
+                $q2 = $db->prepare("SELECT nim, nama AS nama_mahasiswa, id_prodi, tahun_lulus AS tahun_masuk FROM tracer_alumni WHERE nim = ?");
                 $q2->execute([strtoupper($nimInput)]);
                 $mahasiswa = $q2->fetch();
             }
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_pengaduan']) &
         $pengaduanMsg = '❌ Subjek dan isi pengaduan wajib diisi.';
     } else {
         try {
-            $db->prepare("INSERT INTO pengaduan (nama, email, subjek, isi, status, created_at) VALUES (?, ?, ?, ?, 'Baru', NOW())")
+            $db->prepare("INSERT INTO pengaduan (nama, email, subjek, isi_pesan, status, created_at) VALUES (?, ?, ?, ?, 'Baru', NOW())")
                ->execute([
                    $mahasiswa['nama_mahasiswa'] . ' (' . strtoupper($mahasiswa['nim']) . ')',
                    strtolower($mahasiswa['nim']) . '@mahasiswa.kampus.ac.id',

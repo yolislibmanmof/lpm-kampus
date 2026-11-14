@@ -2,45 +2,48 @@
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/core/TotpAuth.php';
 
-// Harus dalam status pending 2FA
-if (empty($_SESSION['require_2fa'])) {
-    header('Location: /login.php');
-    exit;
-}
+if (empty($_SESSION['require_2fa'])) { header('Location: /login.php'); exit; }
 if (isset($_SESSION['require_2fa_expires']) && $_SESSION['require_2fa_expires'] < time()) {
-    $_SESSION = [];
-    session_regenerate_id(true);
-    header('Location: /login.php?expired=1');
-    exit;
+    $_SESSION = []; session_regenerate_id(true);
+    header('Location: /login.php?expired=1'); exit;
 }
 
-$userId = (int)Auth::id();
-$error = '';
-$mode = $_POST['mode'] ?? 'totp';
+$userId    = (int)Auth::id();
+$userEmail = (string)(Auth::user()['email'] ?? '');
+$ip        = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$error     = '';
+$mode      = $_POST['mode'] ?? 'totp';
+$locked    = !Security::check2faThrottle($userId);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $userId > 0) {
-    if ($mode === 'totp') {
+    Security::verifyCsrf();
+    if ($locked) {
+        $error = 'Terlalu banyak percobaan kode. Coba lagi dalam 15 menit.';
+    } elseif ($mode === 'totp') {
         $code = trim($_POST['code'] ?? '');
         $secret = TotpAuth::getUserSecret($userId);
-        if ($secret && TotpAuth::verifyCode($secret, $code)) {
+        if ($secret && TotpAuth::verifyAndConsume($userId, $secret, $code)) {
             unset($_SESSION['require_2fa'], $_SESSION['require_2fa_expires']);
             session_regenerate_id(true);
+            Security::recordLoginAttempt($userId, $userEmail, $ip, true, '2fa_totp_ok');
             Logger::log('LOGIN', '2FA success (TOTP) user #' . $userId);
-            header('Location: /sim/index.php');
-            exit;
+            header('Location: /sim/index.php'); exit;
         }
+        Security::recordLoginAttempt($userId, $userEmail, $ip, false, '2fa_totp_gagal');
         $error = 'Kode OTP tidak valid atau sudah kadaluarsa.';
     } else {
         $code = trim($_POST['recovery_code'] ?? '');
-        if ($userId > 0 && TotpAuth::consumeRecoveryCode($userId, $code)) {
+        if (TotpAuth::consumeRecoveryCode($userId, $code)) {
             unset($_SESSION['require_2fa'], $_SESSION['require_2fa_expires']);
             session_regenerate_id(true);
+            Security::recordLoginAttempt($userId, $userEmail, $ip, true, '2fa_recovery_ok');
             Logger::log('LOGIN', '2FA success (recovery code) user #' . $userId);
-            header('Location: /sim/index.php');
-            exit;
+            header('Location: /sim/index.php'); exit;
         }
+        Security::recordLoginAttempt($userId, $userEmail, $ip, false, '2fa_recovery_gagal');
         $error = 'Kode recovery tidak valid atau sudah dipakai.';
     }
+    $locked = !Security::check2faThrottle($userId);
 }
 ?>
 <!DOCTYPE html>
@@ -55,23 +58,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $userId > 0) {
 body { font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #061D2E, #0F3D5C); color: #fff; padding: 20px; }
 .card { background: #fff; color: #0F3D5C; border-radius: 24px; padding: 40px; max-width: 440px; width: 100%; box-shadow: 0 30px 80px rgba(0,0,0,.3); }
 .logo { text-align: center; margin-bottom: 24px; font-size: 48px; }
-h2 { text-align: center; font-size: 22px; margin-bottom: 8px; color: #0F3D5C; }
+h2 { text-align: center; font-size: 22px; margin-bottom: 8px; }
 p.desc { text-align: center; color: #64748B; font-size: 13px; margin-bottom: 28px; line-height: 1.6; }
 .field { margin-bottom: 16px; }
-.field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #0F3D5C; text-transform: uppercase; letter-spacing: .5px; }
+.field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
 .field input { width: 100%; padding: 14px 16px; border: 2px solid #E2E8F0; border-radius: 12px; font-size: 18px; font-family: monospace; text-align: center; letter-spacing: 8px; font-weight: 700; outline: none; transition: .3s; }
 .field input:focus { border-color: #C9A227; box-shadow: 0 0 0 4px rgba(201,162,39,.15); }
 .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #0F3D5C, #1A5A82); color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; transition: .3s; }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(15,61,92,.3); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 .error { padding: 12px; background: #FEE2E2; color: #991B1B; border-radius: 10px; margin-bottom: 16px; font-size: 13px; text-align: center; border-left: 4px solid #EF4444; }
 .tabs { display: flex; gap: 8px; margin-bottom: 20px; background: #F7F9FC; padding: 4px; border-radius: 10px; }
 .tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; color: #64748B; transition: .2s; border: none; background: none; }
 .tab.active { background: #fff; color: #0F3D5C; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
 .panel { display: none; }
 .panel.active { display: block; }
-a { color: #C9A227; text-decoration: none; }
-a:hover { text-decoration: underline; }
 .back-link { text-align: center; margin-top: 16px; font-size: 12px; }
+.back-link button { background: none; border: none; color: #C9A227; cursor: pointer; font-size: 12px; font-family: inherit; }
+.back-link button:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -79,38 +83,37 @@ a:hover { text-decoration: underline; }
     <div class="logo">🔐</div>
     <h2>Verifikasi Dua Faktor</h2>
     <p class="desc">Akun Anda dilindungi 2FA. Masukkan kode 6 digit dari aplikasi authenticator Anda.</p>
-
     <?php if ($error): ?><div class="error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
-
+    <?php if ($locked): ?><div class="error">🔒 Verifikasi dikunci sementara karena terlalu banyak percobaan. Coba lagi dalam 15 menit.</div><?php endif; ?>
     <div class="tabs">
         <button type="button" class="tab <?= $mode === 'totp' ? 'active' : '' ?>" onclick="switchTab('totp', this)">📱 Kode OTP</button>
         <button type="button" class="tab <?= $mode === 'recovery' ? 'active' : '' ?>" onclick="switchTab('recovery', this)">🔑 Kode Recovery</button>
     </div>
-
     <div class="panel <?= $mode === 'totp' ? 'active' : '' ?>" id="panel-totp">
         <form method="POST">
+            <?= Security::csrfField() ?>
             <input type="hidden" name="mode" value="totp">
-            <div class="field">
-                <label>Kode 6 Digit</label>
-                <input type="text" name="code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required autofocus autocomplete="one-time-code">
+            <div class="field"><label>Kode 6 Digit</label>
+                <input type="text" name="code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required autofocus autocomplete="one-time-code" <?= $locked ? 'disabled' : '' ?>>
             </div>
-            <button type="submit" class="btn">✓ Verifikasi</button>
+            <button type="submit" class="btn" <?= $locked ? 'disabled' : '' ?>>✓ Verifikasi</button>
         </form>
     </div>
-
     <div class="panel <?= $mode === 'recovery' ? 'active' : '' ?>" id="panel-recovery">
         <form method="POST">
+            <?= Security::csrfField() ?>
             <input type="hidden" name="mode" value="recovery">
-            <div class="field">
-                <label>Kode Recovery (XXXX-XXXX)</label>
-                <input type="text" name="recovery_code" maxlength="9" style="letter-spacing:3px;" required autocomplete="off" placeholder="AB12-CD34">
+            <div class="field"><label>Kode Recovery (XXXX-XXXX)</label>
+                <input type="text" name="recovery_code" maxlength="9" style="letter-spacing:3px;" required autocomplete="off" placeholder="AB12-CD34" <?= $locked ? 'disabled' : '' ?>>
             </div>
-            <button type="submit" class="btn">✓ Gunakan Kode Recovery</button>
+            <button type="submit" class="btn" <?= $locked ? 'disabled' : '' ?>>✓ Gunakan Kode Recovery</button>
             <p style="text-align:center;font-size:11px;color:#64748B;margin-top:12px;">⚠️ Setiap kode recovery hanya bisa dipakai sekali.</p>
         </form>
     </div>
-
-    <div class="back-link"><a href="/logout.php">← Batalkan & Keluar</a></div>
+    <form method="POST" action="/logout.php" class="back-link">
+        <?= Security::csrfField() ?>
+        <button type="submit">← Batalkan & Keluar</button>
+    </form>
 </div>
 <script>
 function switchTab(mode, btn) {

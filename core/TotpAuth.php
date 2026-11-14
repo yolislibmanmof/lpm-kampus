@@ -19,7 +19,7 @@ final class TotpAuth
         $buffer = 0;
         $bitsLeft = 0;
         $output = '';
-        
+
         for ($i = 0, $len = strlen($input); $i < $len; $i++) {
             $val = strpos($map, $input[$i]);
             if ($val === false) continue;
@@ -39,7 +39,7 @@ final class TotpAuth
         $buffer = 0;
         $bitsLeft = 0;
         $output = '';
-        
+
         for ($i = 0, $len = strlen($input); $i < $len; $i++) {
             $buffer = ($buffer << 8) | ord($input[$i]);
             $bitsLeft += 8;
@@ -54,45 +54,39 @@ final class TotpAuth
         return $output;
     }
 
-    /**
-     * Generate random base32-encoded secret (20 bytes = 32 chars base32)
-     */
+    /** Generate random base32-encoded secret (20 bytes = 32 chars base32). */
     public static function generateSecret(int $length = 20): string
     {
         return self::base32Encode(random_bytes($length));
     }
 
-    /**
-     * Generate OTP code untuk timestamp tertentu
-     */
+    /** Generate OTP code untuk timestamp tertentu. */
     public static function generateCode(string $secret, ?int $timestamp = null): string
     {
         $time = $timestamp ?? time();
         $counter = intdiv($time, self::PERIOD);
-        
+
         $secretKey = self::base32Decode($secret);
         $timeBytes = pack('N*', 0) . pack('N*', $counter);
-        
+
         $hash = hash_hmac(self::ALGORITHM, $timeBytes, $secretKey, true);
         $offset = ord($hash[strlen($hash) - 1]) & 0x0F;
-        
+
         $code = (
             ((ord($hash[$offset]) & 0x7F) << 24) |
             ((ord($hash[$offset + 1]) & 0xFF) << 16) |
             ((ord($hash[$offset + 2]) & 0xFF) << 8) |
             (ord($hash[$offset + 3]) & 0xFF)
         ) % (10 ** self::DIGITS);
-        
+
         return str_pad((string)$code, self::DIGITS, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Verifikasi kode OTP dengan window tolerance
-     */
+    /** Verifikasi kode OTP dengan window tolerance (tanpa anti-replay; pakai verifyAndConsume untuk login). */
     public static function verifyCode(string $secret, string $code): bool
     {
         if (strlen($code) !== self::DIGITS || !ctype_digit($code)) return false;
-        
+
         $now = time();
         for ($i = -self::WINDOW; $i <= self::WINDOW; $i++) {
             $testTime = $now + ($i * self::PERIOD);
@@ -104,8 +98,34 @@ final class TotpAuth
     }
 
     /**
-     * Generate provisioning URI (untuk QR Code Google Authenticator)
+     * Verifikasi OTP sekaligus anti-replay: satu step waktu hanya boleh dipakai sekali.
+     * Step terakhir disimpan di users.totp_last_step (lihat migration_002.sql).
      */
+    public static function verifyAndConsume(int $idUser, string $secret, string $code): bool
+    {
+        $code = preg_replace('/\s+/', '', $code);
+        if (strlen($code) !== self::DIGITS || !ctype_digit($code)) return false;
+        try {
+            $db = Database::getInstance();
+            $q = $db->prepare("SELECT totp_last_step FROM users WHERE id_user = ?");
+            $q->execute([$idUser]);
+            $last = $q->fetchColumn();
+            $last = ($last === false || $last === null) ? -1 : (int)$last;
+            $current = intdiv(time(), self::PERIOD);
+            for ($i = -self::WINDOW; $i <= self::WINDOW; $i++) {
+                $step = $current + $i;
+                if ($step <= $last) continue;
+                if (hash_equals(self::generateCode($secret, $step * self::PERIOD), $code)) {
+                    $upd = $db->prepare("UPDATE users SET totp_last_step = ? WHERE id_user = ? AND (totp_last_step IS NULL OR totp_last_step < ?)");
+                    $upd->execute([$step, $idUser, $step]);
+                    return $upd->rowCount() > 0;
+                }
+            }
+            return false;
+        } catch (Throwable $e) { error_log('TotpAuth::verifyAndConsume: '.$e->getMessage()); return false; }
+    }
+
+    /** Generate provisioning URI (untuk QR Code Google Authenticator). */
     public static function getProvisioningUri(string $secret, string $accountName, string $issuer = 'SIM-Mutu'): string
     {
         $params = [
@@ -118,9 +138,7 @@ final class TotpAuth
         return 'otpauth://totp/' . rawurlencode($issuer . ':' . $accountName) . '?' . http_build_query($params);
     }
 
-    /**
-     * Generate recovery codes (10 kode, 8 karakter alfanumerik)
-     */
+    /** Generate recovery codes (10 kode, 8 karakter alfanumerik). */
     public static function generateRecoveryCodes(int $count = 10): array
     {
         $codes = [];
@@ -130,28 +148,24 @@ final class TotpAuth
         return $codes;
     }
 
-    /**
-     * Hash recovery code dengan SHA-256
-     */
+    /** Hash recovery code dengan SHA-256. */
     public static function hashRecoveryCode(string $code): string
     {
         return hash('sha256', strtolower(str_replace('-', '', $code)));
     }
 
-    /**
-     * Verifikasi dan consume recovery code
-     */
+    /** Verifikasi dan consume recovery code (sekali pakai). */
     public static function consumeRecoveryCode(int $idUser, string $code): bool
     {
         try {
             $db = Database::getInstance();
             $hash = self::hashRecoveryCode($code);
-            $q = $db->prepare("SELECT id_recovery FROM totp_recovery_codes 
+            $q = $db->prepare("SELECT id_recovery FROM totp_recovery_codes
                                WHERE id_user = ? AND code_hash = ? AND used_at IS NULL");
             $q->execute([$idUser, $hash]);
             $row = $q->fetch();
             if (!$row) return false;
-            
+
             $db->prepare("UPDATE totp_recovery_codes SET used_at = NOW() WHERE id_recovery = ?")
                ->execute([$row['id_recovery']]);
             return true;
@@ -161,9 +175,7 @@ final class TotpAuth
         }
     }
 
-    /**
-     * Cek apakah user punya 2FA aktif
-     */
+    /** Cek apakah user punya 2FA aktif. */
     public static function is2faEnabled(int $idUser): bool
     {
         try {
@@ -176,14 +188,12 @@ final class TotpAuth
         }
     }
 
-    /**
-     * Aktifkan 2FA untuk user (setelah verifikasi sukses)
-     */
+    /** Aktifkan 2FA untuk user (setelah verifikasi sukses). */
     public static function enable2fa(int $idUser, string $secret): bool
     {
         try {
             $db = Database::getInstance();
-            $db->prepare("UPDATE users SET totp_secret = ?, totp_enabled = 1, totp_verified_at = NOW() WHERE id_user = ?")
+            $db->prepare("UPDATE users SET totp_secret = ?, totp_enabled = 1, totp_verified_at = NOW(), totp_last_step = NULL WHERE id_user = ?")
                ->execute([$secret, $idUser]);
             return true;
         } catch (Throwable $e) {
@@ -192,9 +202,7 @@ final class TotpAuth
         }
     }
 
-    /**
-     * Nonaktifkan 2FA
-     */
+    /** Nonaktifkan 2FA. */
     public static function disable2fa(int $idUser): bool
     {
         try {
@@ -212,9 +220,7 @@ final class TotpAuth
         }
     }
 
-    /**
-     * Ambil secret user (untuk verifikasi)
-     */
+    /** Ambil secret user (untuk verifikasi). */
     public static function getUserSecret(int $idUser): ?string
     {
         try {
@@ -228,14 +234,12 @@ final class TotpAuth
         }
     }
 
-    /**
-     * Hitung jumlah recovery codes tersisa
-     */
+    /** Hitung jumlah recovery codes tersisa. */
     public static function getRemainingRecoveryCodes(int $idUser): int
     {
         try {
             $db = Database::getInstance();
-            $q = $db->prepare("SELECT COUNT(*) FROM totp_recovery_codes 
+            $q = $db->prepare("SELECT COUNT(*) FROM totp_recovery_codes
                               WHERE id_user = ? AND used_at IS NULL");
             $q->execute([$idUser]);
             return (int)$q->fetchColumn();

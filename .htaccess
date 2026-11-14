@@ -1,5 +1,5 @@
 # ==========================================
-# .HTACCESS - FINAL SECURE & COMPATIBLE
+# .HTACCESS - LPM KAMPUS (FINAL SECURE & COMPATIBLE)
 # ==========================================
 
 # 1. Dasar Keamanan
@@ -12,8 +12,20 @@ ServerSignature Off
     RewriteBase /
 </IfModule>
 
-# 3. Lindungi File Sensitif
-<FilesMatch "\.(env|env\.example|log|sql|bak|gitignore)$">
+# 3. Lindungi File Sensitif (berdasarkan ekstensi)
+<FilesMatch "\.(env|log|sql|bak|backup|old|orig|save|swp|ini|conf|sh|bat|gitignore|gitattributes)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 3b. Lindungi file konfigurasi/proyek tertentu (berdasarkan nama)
+#     manifest.json TIDAK diblokir - dibutuhkan PWA.
+<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|\.env.*)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
@@ -25,35 +37,33 @@ ServerSignature Off
 
 # 4. Cegah Akses Langsung ke Folder Sensitif
 <IfModule mod_rewrite.c>
-    RewriteRule ^(config|core|logs|vendor)/ - [F,L]
+    RewriteRule ^(config|core|logs|vendor|database)/ - [F,L]
 </IfModule>
 
-# 5. Blokir Eksekusi PHP di Folder Uploads
-# 5. Blokir Eksekusi PHP di Folder Uploads (REWRITE — berfungsi sungguhan)
+# 5. Blokir Eksekusi PHP di Folder Uploads + blokir dotfiles
 <IfModule mod_rewrite.c>
-    RewriteRule ^uploads/.*\.(php|phtml|php3|php4|php5|php7|php8|phar|pl|py|jsp|asp|sh|cgi)$ - [F,L,NC]
-    # Blokir dotfiles (.env, .git, dll) kecuali .well-known
+    RewriteRule ^uploads/.*\.(php|phtml|php3|php4|php5|php7|php8|phps|pht|phar|pl|py|jsp|asp|aspx|sh|cgi)$ - [F,L,NC]
     RewriteRule (^|/)\.(?!well-known) - [F,L]
 </IfModule>
-</FilesMatch>
 
-# 6. Security Headers (DIPERBAIKI)
+# 6. Security Headers
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
-    Header always set X-XSS-Protection "1; mode=block"
+    Header always set X-XSS-Protection "0"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    
-    # Permissions-Policy (Hanya fitur yang valid & didukung browser)
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-    
-    # Content-Security-Policy (DITAMBAHKAN media-src 'self' data: untuk audio notifikasi)
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net; frame-ancestors 'none'; form-action 'self';"
-    
-    # HSTS (Hanya jika HTTPS aktif)
-    <If "%{HTTPS} == 'on'">
-        Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
-    </If>
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none';"
+</IfModule>
+
+# 6b. HSTS hanya saat HTTPS (tanpa <If>, kompatibel Apache 2.2/2.4 & LiteSpeed)
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTPS} =on [OR]
+    RewriteCond %{HTTP:X-Forwarded-Proto} =https
+    RewriteRule ^ - [E=IS_HTTPS:1]
+</IfModule>
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=IS_HTTPS
 </IfModule>
 
 # 7. Default Charset & Kompresi
@@ -61,3 +71,23 @@ AddDefaultCharset UTF-8
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
 </IfModule>
+
+# 8. Cache Aset Statis (performa) - HTML/PHP tidak pernah di-cache
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 0 seconds"
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType image/x-icon "access plus 30 days"
+    ExpiresByType font/woff2 "access plus 30 days"
+    ExpiresByType font/woff "access plus 30 days"
+</IfModule>
+<FilesMatch "^(sw\.js|manifest\.json)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, must-revalidate"
+    </IfModule>
+</FilesMatch>

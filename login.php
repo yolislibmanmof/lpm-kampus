@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $result = Auth::attempt($email, $password);
         if ($result['success']) {
-            // ===== 2FA GATE (Fase 4) =====
+            // ===== 2FA GATE =====
             $uid = (int)Auth::id();
             if ($uid > 0 && TotpAuth::is2faEnabled($uid)) {
                 $_SESSION['require_2fa'] = true;
@@ -32,12 +32,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 if (isset($_GET['expired'])) $info = 'Sesi Anda telah berakhir. Silakan login kembali.';
+elseif (isset($_GET['logged_out'])) $info = 'Anda telah berhasil keluar. Sampai jumpa!';
+elseif (isset($_GET['error'])) $error = 'Permintaan tidak valid. Silakan login kembali.';
 
 $favPath = Site::setting('favicon_path');
 if ($favPath && file_exists(PATH_UPLOAD . $favPath)) {
     $favHref = '/uploads/' . $favPath;
 } else {
-    $initial = mb_substr(Site::setting('brand_utama', 'LPM'), 0, 1);
+    $initial = htmlspecialchars(mb_substr(Site::setting('brand_utama', 'LPM'), 0, 1), ENT_QUOTES, 'UTF-8');
     $svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%230F3D5C'/><stop offset='100%' stop-color='%23C9A227'/></linearGradient></defs><rect width='64' height='64' rx='14' fill='url(%23g)'/><text x='32' y='44' font-family='Arial Black' font-size='34' font-weight='900' text-anchor='middle' fill='white'>$initial</text></svg>";
     $favHref = 'data:image/svg+xml;utf8,' . $svg;
 }
@@ -48,8 +50,8 @@ if ($favPath && file_exists(PATH_UPLOAD . $favPath)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login SIM-Mutu | <?= Security::e(Site::setting('brand_utama','LPM')) ?> <?= Security::e(Site::setting('brand_aksen','Kampus')) ?></title>
-    <link rel="icon" type="image/x-icon" href="<?= $favHref ?>">
-    <link rel="shortcut icon" href="<?= $favHref ?>">
+    <link rel="icon" type="image/x-icon" href="<?= Security::e($favHref) ?>">
+    <link rel="shortcut icon" href="<?= Security::e($favHref) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">

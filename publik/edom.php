@@ -1,6 +1,7 @@
 <?php
 $pageTitle = 'EDOM — Evaluasi Dosen oleh Mahasiswa';
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../core/GamificationEngine.php';
 Security::sendHeaders();
 $db = Database::getInstance();
 
@@ -20,7 +21,7 @@ $EDOM_Q = [
 $token = $_GET['token'] ?? '';
 $kelas = null;
 if ($token) {
-    $st = $db->prepare("SELECT k.*, d.nama_dosen, per.nama periode_nama, per.status status_periode, p.nama_prodi
+    $st = $db->prepare("SELECT k.*, d.nama_dosen, d.id_prodi, per.nama periode_nama, per.status status_periode, p.nama_prodi
         FROM edom_kelas k
         JOIN edom_periode per ON k.id_periode = per.id_periode
         JOIN dosen d ON k.id_dosen = d.id_dosen
@@ -49,6 +50,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $kelas) {
                     $db->prepare("INSERT INTO edom_jawaban (id_kelas, nim, q1,q2,q3,q4,q5,q6,q7,q8,q9,q10, komentar) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
                        ->execute(array_merge([$kelas['id_kelas'], $nim], $vals, [trim($_POST['komentar'] ?? '')]));
                     $success = true;
+                    // 🎮 Gamifikasi: +5 poin partisipasi EDOM untuk Kaprodi prodi terkait.
+                    // Responden mahasiswa anonim & tidak punya akun, maka poin partisipasi
+                    // dikreditkan ke Kaprodi penanggung jawab EDOM prodinya.
+                    if (!empty($kelas['id_prodi'])) {
+                        $kk = $db->prepare("SELECT id_user FROM users WHERE id_role = 3 AND id_prodi = ? AND is_active = 1 LIMIT 1");
+                        $kk->execute([(int)$kelas['id_prodi']]);
+                        $kaprodiId = (int)($kk->fetchColumn() ?: 0);
+                        if ($kaprodiId > 0) {
+                            GamificationEngine::addPoints($kaprodiId, 'SUBMIT_EDOM', 'Partisipasi EDOM kelas #' . (int)$kelas['id_kelas'], 'edom_jawaban', (int)$db->lastInsertId());
+                        }
+                    }
                 } catch (PDOException $e) {
                     $error = 'Terjadi kesalahan sistem. Silakan coba lagi.';
                 }

@@ -6,9 +6,12 @@ require_once __DIR__ . '/../../core/IntegrationHub.php';
 $simTitle = 'Pusat Integrasi Data';
 $activeMenu = 'integrasi';
 
-// Handle Actions
-$action = $_POST['action'] ?? $_GET['action'] ?? null;
+// Handle Actions (POST-only + CSRF)
+$action = $_POST['action'] ?? null;
 $response = null;
+if ($action !== null) {
+    Security::verifyCsrf();
+}
 
 if ($action === 'test' && isset($_POST['kode'])) {
     $response = IntegrationHub::testConnection($_POST['kode']);
@@ -341,6 +344,7 @@ require_once __DIR__ . '/../../includes/header-sim.php';
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
             <form method="POST" style="display:inline;">
                 <input type="hidden" name="action" value="test">
+                <?= Security::csrfField() ?>
                 <input type="hidden" name="kode" value="<?= $api['kode'] ?>">
                 <button type="submit" class="sync-btn primary">🔌 Test Koneksi</button>
             </form>
@@ -358,6 +362,7 @@ require_once __DIR__ . '/../../includes/header-sim.php';
                     <span><?= Security::e($label) ?></span>
                     <form method="POST" style="display:inline;">
                         <input type="hidden" name="action" value="sync">
+                        <?= Security::csrfField() ?>
                         <input type="hidden" name="kode" value="<?= $api['kode'] ?>">
                         <input type="hidden" name="jenis" value="<?= $key ?>">
                         <button type="submit" style="background:none;border:none;color:var(--primary);cursor:pointer;font-weight:700;font-size:11px;">▶ Sync</button>
@@ -416,6 +421,7 @@ require_once __DIR__ . '/../../includes/header-sim.php';
         <h3 style="margin:0 0 16px;">⚡ Sinkronisasi Manual</h3>
         <form method="POST">
             <input type="hidden" name="action" value="sync">
+            <?= Security::csrfField() ?>
             <input type="hidden" name="kode" id="syncKode">
             <p style="color:var(--text-muted);font-size:13px;">Sinkronisasi: <strong id="syncNama"></strong></p>
             
@@ -453,6 +459,7 @@ require_once __DIR__ . '/../../includes/header-sim.php';
         <h3 style="margin:0 0 16px;">⚙️ Konfigurasi API</h3>
         <form method="POST" id="configForm">
             <input type="hidden" name="action" value="save_config">
+            <?= Security::csrfField() ?>
             <input type="hidden" name="kode" id="configKode">
             
             <div style="margin-bottom:12px;">

@@ -625,3 +625,42 @@ body.dark select {
 body.dark .pf-footer {
     background: #06121f !important; /* Sedikit lebih gelap dari primary-dark */
 }
+
+/* ============================================================
+   BATCH 3 — PREMIUM UTILITIES & POLISH (additive, v10)
+============================================================ */
+body.tab-hidden *, body.tab-hidden *::before, body.tab-hidden *::after { animation-play-state: paused !important; }
+
+.skeleton { position: relative; overflow: hidden; background: rgba(15,61,92,.08); border-radius: 8px; }
+.skeleton::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: lpmShimmer 1.4s infinite; }
+body.dark .skeleton { background: rgba(255,255,255,.06); }
+body.dark .skeleton::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); }
+@keyframes lpmShimmer { 100% { transform: translateX(100%); } }
+
+.glass { background: rgba(255,255,255,.65); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); border: 1px solid rgba(255,255,255,.35); }
+body.dark .glass { background: rgba(16,26,48,.6); border-color: rgba(255,255,255,.08); }
+.text-gradient { background: linear-gradient(135deg, var(--accent), var(--accent-light)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hover-lift { transition: transform .3s var(--ease-out), box-shadow .3s var(--ease-out); }
+.hover-lift:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.float-slow { animation: lpmFloat 6s ease-in-out infinite; }
+@keyframes lpmFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.pulse-soft { animation: lpmPulseSoft 2.4s ease-in-out infinite; }
+@keyframes lpmPulseSoft { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+.divider-glow { height: 3px; border: none; border-radius: 3px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+
+#pwaInstallBtn { position: fixed; left: 22px; bottom: 22px; z-index: 998; display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border: none; border-radius: 50px; cursor: pointer; font-family: inherit; font-weight: 800; font-size: 13.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: var(--primary-dark);
+    box-shadow: var(--shadow-gold); animation: fadeUp .6s var(--ease-out); transition: var(--transition); }
+#pwaInstallBtn:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(201,162,39,.55); }
+
+@media print {
+    thead { display: table-header-group; }
+    tr, .card, .stat-card { break-inside: avoid; }
+    a[href]::after { content: ""; }
+    .btn, #pwaInstallBtn, .nt-wrap, .cmdk { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .skeleton::after, .float-slow, .pulse-soft { animation: none !important; }
+}

@@ -3,31 +3,9 @@ require_once dirname(__DIR__, 2) . '/config/config.php';
 Auth::requireRole([1, 2]);
 $db = Database::getInstance();
 
-/* ===== Export CSV (Robust & Excel-Friendly) ===== */
+/* ===== Export dialihkan ke pusat export aman (formula-injection protected + XLSX) ===== */
 if (isset($_GET['export'])) {
-    header('Content-Type: text/csv; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="tracer_study_' . date('Ymd') . '.csv"');
-    
-    $output = fopen('php://output', 'w');
-    // UTF-8 BOM agar Excel membaca karakter Indonesia dengan benar
-    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-    
-    // Header
-    fputcsv($output, [
-        'Nama', 'NIM', 'Prodi', 'Tahun Lulus', 'Email', 'WA', 
-        'Status', 'Instansi', 'Jabatan', 'Masa Tunggu (Bln)', 'Kesesuaian', 'Gaji', 'Siap Wawancara'
-    ], ';');
-    
-    $stmt = $db->query("SELECT t.*, p.nama_prodi FROM tracer_alumni t LEFT JOIN prodi p ON t.id_prodi = p.id_prodi ORDER BY t.created_at DESC");
-    while ($r = $stmt->fetch()) {
-        fputcsv($output, [
-            $r['nama'], $r['nim'], $r['nama_prodi'] ?? '', $r['tahun_lulus'], 
-            $r['email'], $r['no_wa'], $r['status_kerja'], $r['nama_instansi'], 
-            $r['jabatan'], $r['masa_tunggu_bulan'], $r['kesesuaian_bidang'], 
-            $r['kisaran_gaji'], $r['siap_wawancara'] ? 'Ya' : 'Tidak'
-        ], ';');
-    }
-    fclose($output);
+    header('Location: /sim/admin/export.php?data=tracer&format=csv&prodi=' . (int)($_GET['prodi'] ?? 0));
     exit;
 }
 
@@ -75,7 +53,8 @@ require_once dirname(__DIR__, 2) . '/includes/header-sim.php';
         <p class="text-muted" style="font-size:13px;">Tingkat kerja <?= $tkr ?>% • Kesesuaian bidang <?= $skr ?>% • Rata-rata masa tunggu <?= $avgT ?: '—' ?> bulan</p>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <a href="?export=1" class="btn btn-outline">📤 Export CSV</a>
+        <a href="/sim/admin/export.php?data=tracer&format=csv&prodi=<?= (int)$prodiFilter ?>" class="btn btn-outline" data-no-transition>📤 CSV</a>
+        <a href="/sim/admin/export.php?data=tracer&format=xlsx&prodi=<?= (int)$prodiFilter ?>" class="btn btn-gold" data-no-transition>📊 Excel</a>
         <button class="btn btn-gold" onclick="navigator.clipboard.writeText('<?= Security::e($formUrl) ?>').then(()=>{let b=this;b.textContent='✅ Tersalin';setTimeout(()=>b.textContent='📋 Salin Tautan Form',2000)});">📋 Salin Tautan Form</button>
     </div>
 </div>

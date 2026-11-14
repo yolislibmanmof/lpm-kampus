@@ -7,21 +7,27 @@ final class Auth
     {
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
-        if (!Security::checkLoginThrottle($ip)) {
-            return ['success' => false, 'message' => 'Terlalu banyak percobaan. Coba lagi 15 menit lagi.'];
+        // Throttle berbasis database (tidak bisa dijauhi dengan buang cookie)
+        if (!Security::checkLoginThrottleDb($email, $ip)) {
+            return ['success' => false, 'message' => 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.'];
         }
 
         $stmt = Database::getInstance()->prepare('SELECT * FROM users WHERE email = :email AND is_active = 1');
         $stmt->execute([':email' => $email]);
         $user = $stmt->fetch();
 
-        if (!$user || !password_verify($password, $user['password_hash'])) {
-            Security::registerFailedLogin($ip);
+        // Dummy verify agar waktu respons sama baik user ada maupun tidak (anti user-enumeration)
+        $dummyHash = '$2y$10$/yXYNn3Udrd/FvaDsSYqa.ahrXV2e8Bg3ZKQKN/23PWML84G0tW9K';
+        $valid = password_verify($password, $user['password_hash'] ?? $dummyHash);
+
+        if (!$user || !$valid) {
+            Security::recordLoginAttempt(isset($user['id_user']) ? (int)$user['id_user'] : null, $email, $ip, false, 'kredensial_salah');
             Logger::log('LOGIN_GAGAL', 'Percobaan login gagal untuk: ' . $email);
             return ['success' => false, 'message' => 'Email atau password salah.'];
         }
 
         if ($user['blokir_sampai'] && strtotime($user['blokir_sampai']) > time()) {
+            Security::recordLoginAttempt((int)$user['id_user'], $email, $ip, false, 'diblokir');
             return ['success' => false, 'message' => 'Akun sedang diblokir sementara.'];
         }
 
@@ -45,7 +51,12 @@ final class Auth
         Database::getInstance()->prepare('UPDATE users SET last_login = NOW() WHERE id_user = :id')
             ->execute([':id' => $user['id_user']]);
 
+        Security::recordLoginAttempt((int)$user['id_user'], $email, $ip, true);
         Logger::log('LOGIN', 'Login berhasil ke SIM-Mutu');
+
+        // 🎮 Gamifikasi: poin login harian (sekali/hari, anti-farming). Tidak pernah melempar exception.
+        require_once __DIR__ . '/GamificationEngine.php';
+        GamificationEngine::addPoints((int)$user['id_user'], 'LOGIN', 'Login harian', null, null, true);
 
         return ['success' => true, 'role' => $user['id_role']];
     }
